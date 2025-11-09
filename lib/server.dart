@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:mime/mime.dart';
+import 'package:path/path.dart' as path;
+
 import 'cpu.dart';
 import 'gpu.dart';
 import 'memory.dart';
@@ -66,24 +69,8 @@ class Server {
           ..write('WebSocket upgrade required');
         await response.close();
       }
-    } else if (request.uri.path == '/') {
-      final file = File('web/index.html');
-      if (await file.exists()) {
-        response
-          ..headers.contentType = ContentType.html
-          ..write(await file.readAsString());
-        await response.close();
-      } else {
-        response
-          ..statusCode = HttpStatus.notFound
-          ..write('Not found');
-        await response.close();
-      }
     } else {
-      response
-        ..statusCode = HttpStatus.notFound
-        ..write('Not found');
-      await response.close();
+      await _serveStaticFile(request);
     }
   }
 
@@ -113,6 +100,40 @@ class Server {
         }
       },
     );
+  }
+
+  Future<void> _serveStaticFile(HttpRequest request) async {
+    final response = request.response;
+
+    var requestPath = request.uri.path;
+    if (requestPath == '/') {
+      requestPath = '/index.html';
+    }
+
+    final webDir = Directory('web').absolute;
+    final filePath = path.posix.normalize('web/${requestPath.substring(1)}');
+    final file = File(filePath).absolute;
+
+    if (!path.isWithin(webDir.path, file.path)) {
+      response
+        ..statusCode = HttpStatus.forbidden
+        ..write('Forbidden');
+      await response.close();
+      return;
+    }
+
+    if (await file.exists()) {
+      final contentType = lookupMimeType(file.path) ?? 'text/html';
+      response.headers.contentType = ContentType.parse(contentType);
+
+      await response.addStream(file.openRead());
+      await response.close();
+    } else {
+      response
+        ..statusCode = HttpStatus.notFound
+        ..write('Not found');
+      await response.close();
+    }
   }
 
   void _startMetricsStream() {

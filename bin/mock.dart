@@ -72,9 +72,9 @@ class MockMemoryMonitor implements MemoryMonitor {
 
   @override
   MemoryMetrics readMetrics() {
-    // Move up or down by up to 100Mb per tick.
-    final change = _random.nextInt(200);
-    _usedKb = (_usedKb + ((change - 100) * 1024)).clamp(
+    // Move up or down by up to 1GB per tick.
+    final change = _random.nextInt(2048);
+    _usedKb = (_usedKb + ((change - 1024) * 1024)).clamp(
       5 * 1024 * 1024,
       _totalKb,
     );

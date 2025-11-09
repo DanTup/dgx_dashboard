@@ -6,3 +6,5 @@ environment:
 
 dependencies:
   lints: ^6.0.0
+  mime: ^2.0.0
+  path: ^1.9.1
