@@ -242,8 +242,9 @@ function initCharts() {
 }
 
 function updateCharts(data) {
-	const usedGB = data.memory.usedKb / 1024 / 1024;
-	const totalGB = data.memory.totalKb / 1024 / 1024;
+	// Convert KiB to GB: KiB × 1024 (to bytes) ÷ 1000000000 (to GB)
+	const usedGB = (data.memory.usedKb * 1024) / 1000000000;
+	const totalGB = (data.memory.totalKb * 1024) / 1000000000;
 	const memoryUsed = parseFloat(usedGB.toFixed(1));
 
 	gpuHistory.push(data.gpu.usagePercent);
