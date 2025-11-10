@@ -1,3 +1,7 @@
+:root {
+	--progress-bar-height: 3px;
+}
+
 * {
 	font-family: sans-serif;
 }
@@ -6,9 +10,22 @@ body {
 	margin: 0;
 }
 
+/* Progress bar at top indicating time until next data refresh */
+#progress-bar {
+	position: fixed;
+	top: 0;
+	right: 0;
+	height: var(--progress-bar-height);
+	background-color: rgb(54, 162, 235);
+	width: 100%;
+	transition: width linear;
+	z-index: 1000;
+}
+
 .page {
 	max-width: 1400px;
 	margin: auto;
+	margin-top: var(--progress-bar-height);
 }
 
 h1 {

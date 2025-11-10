@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'constants.dart';
+
 /// Represents GPU usage metrics.
 typedef GpuMetrics = ({int usagePercent, int temperatureC, double powerW});
 
@@ -67,10 +69,11 @@ class GpuMonitor {
     if (_isRunning) return;
 
     try {
+      // Use the shared poll interval constant.
       final process = _nvidiaSmiProcess = await Process.start('nvidia-smi', [
         '--query-gpu=utilization.gpu,temperature.gpu,power.draw',
         '--format=csv,noheader,nounits',
-        '-l=5', // Poll every 5 seconds
+        '-l=$pollInternalSeconds',
       ]);
 
       _processOutputSubscription = process.stdout

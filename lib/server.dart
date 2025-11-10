@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 
+import 'constants.dart';
 import 'cpu.dart';
 import 'gpu.dart';
 import 'memory.dart';
@@ -162,6 +163,7 @@ class Server {
           'availableKb': ev.memory.availableKb,
           'totalKb': ev.memory.totalKb,
         },
+        'nextPollSeconds': pollInternalSeconds,
       };
 
       // Send to all connected clients.

@@ -294,6 +294,20 @@ function updateCharts(data) {
 }
 
 const statusDiv = document.getElementById('status');
+const progressBar = document.getElementById('progress-bar');
+
+function startProgressBar(seconds) {
+	if (!progressBar) return;
+
+	progressBar.style.transition = 'none';
+	progressBar.style.width = '100%';
+
+	// Force reflow to apply the reset before starting transition.
+	progressBar.offsetHeight;
+
+	progressBar.style.transition = `width ${seconds}s linear`;
+	requestAnimationFrame(() => progressBar.style.width = '0%');
+}
 
 function connect() {
 	const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -302,11 +316,20 @@ function connect() {
 	ws.onopen = () => {
 		statusDiv.textContent = 'Connected';
 		statusDiv.style.color = '#4ec9b0';
+		// Begin progress bar animation assuming default interval of 5 seconds.
+		startProgressBar(5);
 	};
 
 	ws.onmessage = (event) => {
 		const data = JSON.parse(event.data);
 		updateCharts(data);
+		// Start or restart the progress bar based on the server-provided interval.
+		if (typeof data.nextPollSeconds === 'number') {
+			startProgressBar(data.nextPollSeconds);
+		} else {
+			// Default to POLL_INTERVAL_SECONDS if not provided.
+			startProgressBar(POLL_INTERVAL_SECONDS);
+		}
 	};
 
 	ws.onerror = (error) => {
