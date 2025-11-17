@@ -13,7 +13,7 @@ Metrics update every 5s and are only collected while there is a connected client
 
 ## Running on DGX Spark
 
-### Run latest from GHRC
+### Run latest from ghcr.io
 
 ```
 docker run -d --gpus all -p 8080:8080 --pull=always --restart=unless-stopped --name dashboard ghcr.io/dantup/dgx_dashboard:latest
