@@ -14,9 +14,12 @@ typedef GpuMetrics = ({int usagePercent, int temperatureC, double powerW});
 /// from the nvidia-smi command-line tool. The underlying process is only active
 /// while there is an active (unpaused) listener on the metrics stream.
 class GpuMonitor {
-  final StreamController<GpuMetrics> _metricsController;
+  final StreamController<GpuMetrics?> _metricsController;
   Process? _nvidiaSmiProcess;
   StreamSubscription<String>? _processOutputSubscription;
+
+  /// The number of restarts of nvidia-smi remaining.
+  var _remainingRestarts = maxNvidiaSmiRestarts;
 
   /// Creates a new GPU monitor.
   ///
@@ -30,22 +33,36 @@ class GpuMonitor {
       ..onCancel = _stop;
   }
 
+  /// Whether the process has terminated the maximum number of times and won't
+  /// start again.
+  bool get hasTerminated => _remainingRestarts == 0;
+
   /// A stream of GPU metrics.
   ///
   /// Subscribe to this stream to receive periodic GPU metrics updates.
   /// The `nvidia-smi` process is automatically managed based on subscription
   /// state.
-  Stream<GpuMetrics> get metrics => _metricsController.stream;
+  ///
+  /// If the `nvidia-smi` process crashes too many times and will not be
+  /// restarted, a `null` will be emitted.
+  Stream<GpuMetrics?> get metrics => _metricsController.stream;
 
   /// Whether the `nvidia-smi` process is running.
   bool get _isRunning => _nvidiaSmiProcess != null;
 
   void _handleProcessDone() {
-    // If `nvidia-smi` quit but consumer still wants data, restart.
+    // If `nvidia-smi` quit but consumer still wants data, attempt restart.
     if (_metricsController.hasListener && !_metricsController.isPaused) {
-      log('nvidia-smi process terminated unexpectedly');
       _stop();
-      _start();
+      if (_remainingRestarts > 0) {
+        log(
+          'nvidia-smi process terminated unexpectedly - ${--_remainingRestarts} restarts remaining',
+        );
+        Future<void>.delayed(const Duration(seconds: 1)).then((_) => _start());
+      } else {
+        log('nvidia-smi process terminated unexpectedly - will not restart');
+        _metricsController.add(null);
+      }
     }
   }
 
@@ -77,6 +94,12 @@ class GpuMonitor {
         '--format=csv,noheader,nounits',
         '-l=$pollSeconds',
       ]);
+
+      unawaited(
+        process.exitCode.then((code) {
+          log('nvidia-semi terminated with $exitCode');
+        }),
+      );
 
       _processOutputSubscription = process.stdout
           .transform(utf8.decoder)

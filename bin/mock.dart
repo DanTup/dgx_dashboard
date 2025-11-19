@@ -22,6 +22,8 @@ Future<void> main() async {
   await server.start(InternetAddress.anyIPv4, 8080);
 }
 
+const simulateNvidiaSmiCrash = false;
+
 final _random = Random();
 
 /// A mock implementation of [CpuMonitor] that returns random values.
@@ -72,15 +74,24 @@ class MockGpuMonitor implements GpuMonitor {
   var _currentPower = 4.1;
 
   @override
-  late Stream<GpuMetrics> metrics = () async* {
+  late Stream<GpuMetrics?> metrics = () async* {
     yield _computeNext();
-    yield* Stream<GpuMetrics>.periodic(
+    yield* Stream<GpuMetrics?>.periodic(
       Duration(seconds: pollSeconds),
       _computeNext,
     );
   }();
 
-  GpuMetrics _computeNext([_]) {
+  var _remainingRestarts = 3;
+
+  @override
+  bool get hasTerminated => _remainingRestarts == 0;
+
+  GpuMetrics? _computeNext([_]) {
+    if (simulateNvidiaSmiCrash && _remainingRestarts-- <= 0) {
+      return null;
+    }
+
     _currentPercent = (_currentPercent + (_random.nextInt(20) - 10)).clamp(
       0,
       100,

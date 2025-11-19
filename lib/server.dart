@@ -27,6 +27,10 @@ class Server {
   /// The GPU Monitor from `nvidia-smi` already polls on an interval so we just
   /// collect other metrics each time it emits.
   late final metricsStream = _gpuMonitor.metrics.map((gpu) {
+    if (gpu == null) {
+      return null;
+    }
+
     final cpu = _cpuMonitor.readMetrics();
     final temperature = _temperatureMonitor.readMetrics();
     final memory = _memoryMonitor.readMetrics();
@@ -38,7 +42,10 @@ class Server {
 
   /// A buffer of the last 10 events so that when a new client connects
   /// we can provide some immediate history.
-  final _clientMetricsBuffer = <Map<String, Object?>>[];
+  ///
+  /// A `null` value means the nvidia-smi process has crashed and will not be
+  /// restarted.
+  final _clientMetricsBuffer = <Map<String, Object?>?>[];
 
   final Set<WebSocket> _connectedClients = {};
 
@@ -134,6 +141,10 @@ class Server {
     if (_metricsSubscription case final sub? when !sub.isPaused) {
       _metricsSubscription?.pause();
       _clientMetricsBuffer.clear();
+      // If the process has crashed, restore the null.
+      if (_gpuMonitor.hasTerminated) {
+        _clientMetricsBuffer.add(null);
+      }
       log('Paused metrics stream and cleared data buffer');
     }
   }
@@ -191,38 +202,39 @@ class Server {
 
     log('Starting metrics stream');
     _metricsSubscription = metricsStream.listen((ev) async {
-      final docker = await _getDockerContainers();
-      final message = {
-        'gpu': {
-          'usagePercent': ev.gpu.usagePercent,
-          'powerW': ev.gpu.powerW,
-          'temperatureC': ev.gpu.temperatureC,
-        },
-        'cpu': {'usagePercent': ev.cpu.usagePercent},
-        'temperature': {
-          'systemTemperatureC': ev.temperature.systemTemperatureC,
-        },
-        'memory': {
-          'usedKB': ev.memory.usedKB,
-          'availableKB': ev.memory.availableKB,
-          'totalKB': ev.memory.totalKB,
-        },
-        'docker': docker
-            .map(
-              (c) => {
-                'id': c.id,
-                'image': c.image,
-                'command': c.command,
-                'created': c.created,
-                'status': c.status,
-                'ports': c.ports,
-                'names': c.names,
+      final message = ev != null
+          ? {
+              'gpu': {
+                'usagePercent': ev.gpu.usagePercent,
+                'powerW': ev.gpu.powerW,
+                'temperatureC': ev.gpu.temperatureC,
               },
-            )
-            .toList(),
-        'keepEvents': keepEvents,
-        'nextPollSeconds': pollSeconds,
-      };
+              'cpu': {'usagePercent': ev.cpu.usagePercent},
+              'temperature': {
+                'systemTemperatureC': ev.temperature.systemTemperatureC,
+              },
+              'memory': {
+                'usedKB': ev.memory.usedKB,
+                'availableKB': ev.memory.availableKB,
+                'totalKB': ev.memory.totalKB,
+              },
+              'docker': (await _getDockerContainers())
+                  .map(
+                    (c) => {
+                      'id': c.id,
+                      'image': c.image,
+                      'command': c.command,
+                      'created': c.created,
+                      'status': c.status,
+                      'ports': c.ports,
+                      'names': c.names,
+                    },
+                  )
+                  .toList(),
+              'keepEvents': keepEvents,
+              'nextPollSeconds': pollSeconds,
+            }
+          : null;
 
       // Keep a buffer of events to send to new clients.
       _clientMetricsBuffer.add(message);

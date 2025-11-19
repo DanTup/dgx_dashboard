@@ -367,6 +367,14 @@ function connect() {
 
 	ws.onmessage = (event) => {
 		const data = JSON.parse(event.data);
+
+		if (data == null) {
+			statusDiv.textContent = 'nvidia-smi has crashed, see log output';
+			statusDiv.style.color = '#f48771';
+			console.error('nvidia-smi has crashed, see log output');
+			return;
+		}
+
 		updateCharts(data);
 		updateDocker(data);
 
