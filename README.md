@@ -8,8 +8,9 @@ A simple dashboard for the DGX Spark with some slight differences to the built-i
 - Includes CPU usage
 - Includes GPU and system temperatures
 - Includes stats in browser tab title
+- Includes a list of Docker containers with Start/Stop buttons
 
-Metrics update every 5s and are only collected while there is a connected client.
+Metrics update every 5s and are only collected while there is a connected client. Docker container status is updated every 30s.
 
 ## Running on DGX Spark
 
