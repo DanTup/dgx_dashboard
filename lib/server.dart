@@ -133,6 +133,12 @@ class Server {
           }) {
             await _dockerMonitor.stopContainer(id);
             _lastDockerUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+          } else if (message case {
+            'command': 'docker-restart',
+            'id': final String id,
+          }) {
+            await _dockerMonitor.restartContainer(id);
+            _lastDockerUpdate = DateTime.fromMillisecondsSinceEpoch(0);
           }
         } catch (e) {
           log('Error handling message:\n$data:\n$e');

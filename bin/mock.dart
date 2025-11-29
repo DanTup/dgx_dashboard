@@ -22,7 +22,7 @@ Future<void> main() async {
   await server.start(InternetAddress.anyIPv4, 8080);
 }
 
-const simulateNvidiaSmiCrash = false;
+const simulateNvidiaSmiCrash = true;
 
 final _random = Random();
 
@@ -75,6 +75,11 @@ class MockDockerMonitor implements DockerMonitor {
   @override
   Future<List<DockerContainer>> getContainers() async {
     return _containers;
+  }
+
+  @override
+  Future<bool> restartContainer(String id) async {
+    return await stopContainer(id) && await startContainer(id);
   }
 
   @override

@@ -186,6 +186,10 @@ h1 {
 	color: #c53030;
 }
 
+.restart-btn {
+	color: #ccaa12;
+}
+
 .actions button:disabled {
 	opacity: 0.5;
 	cursor: default;

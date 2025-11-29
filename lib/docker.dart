@@ -55,20 +55,18 @@ class DockerMonitor {
     }
   }
 
+  /// Restarts the container with [id].
+  Future<bool> restartContainer(String id) => _runDockerCommand('restart', id);
+
   /// Starts the container with [id].
-  Future<bool> startContainer(String id) async {
-    try {
-      final result = await Process.run('docker', ['start', id]);
-      return result.exitCode == 0;
-    } catch (e) {
-      return false;
-    }
-  }
+  Future<bool> startContainer(String id) => _runDockerCommand('start', id);
 
   /// Stops the container with [id].
-  Future<bool> stopContainer(String id) async {
+  Future<bool> stopContainer(String id) => _runDockerCommand('stop', id);
+
+  Future<bool> _runDockerCommand(String command, String id) async {
     try {
-      final result = await Process.run('docker', ['stop', id]);
+      final result = await Process.run('docker', [command, id]);
       return result.exitCode == 0;
     } catch (e) {
       return false;

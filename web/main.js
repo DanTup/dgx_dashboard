@@ -337,18 +337,21 @@ function updateDocker(data) {
 
 		const startBtn = clone.querySelector('.start-btn');
 		const stopBtn = clone.querySelector('.stop-btn');
+		const restartBtn = clone.querySelector('.restart-btn');
 		stopBtn.onclick = () => stopContainer(stopBtn, container.id);
 		startBtn.onclick = () => startContainer(startBtn, container.id);
+		restartBtn.onclick = () => restartContainer(restartBtn, container.id);
 
 		const isDashboard = container.names.includes('dgx_dashboard') || container.image.includes('dgx_dashboard');
 
-		if (isRunning) {
+		if (!isDashboard)
+			restartBtn.style.display = 'none';
+
+		if (isRunning)
 			startBtn.style.display = 'none';
-			if (isDashboard)
-				stopBtn.disabled = true;
-		} else {
+
+		if (!isRunning || isDashboard)
 			stopBtn.style.display = 'none';
-		}
 
 		tableBody.appendChild(clone);
 	});
@@ -367,6 +370,15 @@ function stopContainer(btn, id) {
 	if (ws && ws.readyState === WebSocket.OPEN) {
 		ws.send(JSON.stringify({ command: 'docker-stop', id }));
 		btn.textContent = 'Stopping…'
+		btn.disabled = true;
+	}
+}
+
+function restartContainer(btn, id) {
+	if (!confirm('Are you sure you want to restart this container?')) return;
+	if (ws && ws.readyState === WebSocket.OPEN) {
+		ws.send(JSON.stringify({ command: 'docker-restart', id }));
+		btn.textContent = 'Restarting…'
 		btn.disabled = true;
 	}
 }
@@ -402,7 +414,7 @@ function connect() {
 		const data = JSON.parse(event.data);
 
 		if (!data.gpu) {
-			statusDiv.textContent = 'nvidia-smi has crashed, see log output';
+			statusDiv.textContent = 'nvidia-smi has crashed too many times, click Restart on the dashboard container';
 			statusDiv.style.color = '#f48771';
 			console.error('nvidia-smi has crashed, see log output');
 		}
