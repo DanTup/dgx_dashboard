@@ -94,6 +94,12 @@ class DockerMonitor {
   Future<bool> stopContainer(String id) => _runDockerCommand('stop', id);
 
   Future<bool> _runDockerCommand(String command, String id) async {
+    // Ensure a valid container id (alphanumeric, underscore, hyphen, period).
+    // Must be 1-255 chars, no path separators or shell metacharacters.
+    if (!RegExp(r'^[a-zA-Z0-9_.-]{1,255}$').hasMatch(id)) {
+      return false;
+    }
+
     try {
       final result = await Process.run('docker', [command, id]);
       return result.exitCode == 0;
