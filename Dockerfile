@@ -8,15 +8,12 @@ RUN dart pub get
 COPY . .
 RUN dart compile exe bin/main.dart -o bin/dgx_dashboard
 
+# Switch to a minimal Alpine container for runtime.
+FROM alpine:latest
 
-
-# Switch to a slim container for runtime.
-FROM debian:stable-slim
-
-# Install Docker CLI so we can monitor containers.
-RUN apt-get update && \
-    apt-get install -y docker.io && \
-    rm -rf /var/lib/apt/lists/*
+# Install Docker CLI and glibc compatibility.
+# gcompat is required for the glibc-linked Dart binary/nvidia-smi.
+RUN apk add --no-cache docker-cli gcompat
 
 WORKDIR /app
 
