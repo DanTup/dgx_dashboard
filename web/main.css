@@ -154,6 +154,28 @@ h1 {
 	border-color: #feb2b2;
 }
 
+#nvidia-smi-crash-warning {
+	background-color: #f48771;
+	border-radius: 5px;
+	padding: 10px 15px;
+	margin: 5px 0 15px;
+}
+
+#nvidia-smi-crash-warning>* {
+	margin: 0;
+}
+
+#nvidia-smi-crash-warning>*:not(:last-child) {
+	margin-bottom: 15px;
+}
+
+#nvidia-smi-crash-warning code {
+	font-family: monospace;
+	background-color: #f2917e;
+	padding: 3px;
+	border-radius: 3px;
+}
+
 .name {
 	font-size: 1.1em;
 	font-weight: bold;

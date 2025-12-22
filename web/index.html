@@ -26,6 +26,16 @@
             <a href="https://build.nvidia.com/spark">Resources</a>
         </span>
     </div>
+
+    <div id="nvidia-smi-crash-warning" style="display: none">
+        <h2>nvidia-smi is failing to start</h2>
+        <p>If you have Docker integration enabled, click <code>Restart</code> on the dashboard container below. Otherwise, use <code>docker restart dashboard</code> to restart.</p>
+        <p>
+            If the logs show <em>Failed to initialize NVML: Unknown Error</em>, this is a known issue and can be worked around by configuring Docker to use cgroupfs as the cgroup driver for containers.
+            See <a href="https://forums.developer.nvidia.com/t/failed-to-initialize-nvml-unknown-error-running-nvidia-smi-in-a-docker-container-only-after-some-hours-days/352743/10?u=dannytup">forums.developer.nvidia.com/t/failed-to-initialize...</a>
+            and <a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/troubleshooting.html#containers-losing-access-to-gpus-with-error-failed-to-initialize-nvml-unknown-error">docs.nvidia.com/.../troubleshooting.html</a> for more info.
+        </p>
+    </div>
     
     <div class="graphs">
          <div class="group full">
