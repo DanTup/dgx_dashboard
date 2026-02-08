@@ -259,10 +259,11 @@ class Server {
     );
   }
 
-  /// Resets the Docker polling timer and immediately updates containers.
+  /// Resets the Docker polling timer and schedules an immediate update.
   /// 
-  /// This prevents concurrent Docker operations by canceling the existing
-  /// timer, updating immediately, and restarting the timer.
+  /// Cancels the existing timer and starts a new polling cycle. If a Docker
+  /// update is already in progress, the new update will be skipped by the mutex
+  /// flag and the timer will be restarted for the next cycle.
   void _resetDockerPolling() {
     _dockerPollTimer?.cancel();
     _dockerPollTimer = null;
