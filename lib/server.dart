@@ -226,6 +226,10 @@ class Server {
       // Pause the subscription to prevent concurrent processing of events.
       // This ensures that if Docker operations take longer than the poll
       // interval, we don't pile up multiple async handlers.
+      // Note: pause() is idempotent - calling it multiple times just increments
+      // an internal counter, and resume() will decrement it. Since we pause at
+      // the start of each handler, new events are queued until we resume at the
+      // end, ensuring serial processing.
       _metricsSubscription?.pause();
       
       try {

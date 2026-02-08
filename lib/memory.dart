@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'conversions.dart';
+import 'utils.dart';
 
 /// Represents memory usage metrics.
 typedef MemoryMetrics = ({int totalKB, int usedKB, int availableKB});
@@ -22,11 +23,17 @@ class MemoryMonitor {
       if (totalKiB == null && line.startsWith('MemTotal:')) {
         totalKiB = int.tryParse(line.replaceAll(RegExp(r'[^0-9]'), ''));
         // If parsing failed, set to 0 to prevent infinite searching
-        totalKiB ??= 0;
+        if (totalKiB == null) {
+          log('Warning: Failed to parse MemTotal from /proc/meminfo: $line');
+          totalKiB = 0;
+        }
       } else if (availableKiB == null && line.startsWith('MemAvailable:')) {
         availableKiB = int.tryParse(line.replaceAll(RegExp(r'[^0-9]'), ''));
         // If parsing failed, set to 0 to prevent infinite searching
-        availableKiB ??= 0;
+        if (availableKiB == null) {
+          log('Warning: Failed to parse MemAvailable from /proc/meminfo: $line');
+          availableKiB = 0;
+        }
       }
 
       // Exit early once we have both values
