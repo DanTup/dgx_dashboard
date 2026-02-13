@@ -34,7 +34,8 @@ class Server {
   });
 
   var _latestDockerContainers = <DockerContainer>[];
-  var _lastDockerUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+  Future<void>? _dockerPollInFlight;
+  Timer? _dockerPollTimer;
 
   /// A buffer of the last 10 events so that when a new client connects
   /// we can provide some immediate history.
@@ -77,14 +78,34 @@ class Server {
     await server.map(_handleRequest).toList();
   }
 
-  Future<List<DockerContainer>> _getDockerContainers() async {
-    final now = DateTime.now();
-    if (now.difference(_lastDockerUpdate).inSeconds > dockerPollSeconds) {
-      _latestDockerContainers = await _dockerMonitor.getContainers();
-      _latestDockerContainers.sort((c1, c2) => c1.names.compareTo(c2.names));
-      _lastDockerUpdate = now;
+  void _fetchDockerContainers(bool wasTriggedByCommand) {
+    if (_connectedClients.isEmpty) return;
+
+    if (!wasTriggedByCommand && _dockerPollInFlight != null) {
+      log('Scheduled Docker poll skipped because an update is in flight');
+      return;
     }
-    return _latestDockerContainers;
+
+    Future<void> poll() async {
+      final stopwatch = Stopwatch()..start();
+      try {
+        _latestDockerContainers = await _dockerMonitor.getContainers();
+        _latestDockerContainers.sort((c1, c2) => c1.names.compareTo(c2.names));
+
+        final elapsedMs = stopwatch.elapsedMilliseconds;
+        if (elapsedMs > 5000) {
+          log('Docker poll took ${elapsedMs}ms');
+        }
+      } catch (e) {
+        final elapsedMs = stopwatch.elapsedMilliseconds;
+        log('Docker polling failed after ${elapsedMs}ms: $e');
+      } finally {
+        stopwatch.stop();
+        _dockerPollInFlight = null;
+      }
+    }
+
+    _dockerPollInFlight = poll();
   }
 
   Future<void> _handleRequest(HttpRequest request) async {
@@ -134,19 +155,19 @@ class Server {
           final message = jsonDecode(data as String);
           if (message case {'command': 'docker-start', 'id': final String id}) {
             await _dockerMonitor.startContainer(id);
-            _lastDockerUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+            _fetchDockerContainers(true);
           } else if (message case {
             'command': 'docker-stop',
             'id': final String id,
           }) {
             await _dockerMonitor.stopContainer(id);
-            _lastDockerUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+            _fetchDockerContainers(true);
           } else if (message case {
             'command': 'docker-restart',
             'id': final String id,
           }) {
             await _dockerMonitor.restartContainer(id);
-            _lastDockerUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+            _fetchDockerContainers(true);
           }
         } catch (e) {
           log('Error handling message:\n$data:\n$e');
@@ -163,6 +184,8 @@ class Server {
   void _pauseStreamIfNoClients() {
     if (_connectedClients.isNotEmpty) return;
 
+    _stopDockerPolling();
+
     if (_metricsSubscription case final sub? when !sub.isPaused) {
       _metricsSubscription?.pause();
       _clientMetricsBuffer.clear();
@@ -172,6 +195,8 @@ class Server {
 
   void _resumeStreamIfClients() {
     if (_connectedClients.isEmpty) return;
+
+    _startDockerPolling();
 
     if (_metricsSubscription case final sub? when sub.isPaused) {
       _metricsSubscription?.resume();
@@ -215,7 +240,19 @@ class Server {
     }
   }
 
+  void _startDockerPolling() {
+    if (_connectedClients.isEmpty || _dockerPollTimer != null) return;
+
+    _fetchDockerContainers(false);
+    _dockerPollTimer = Timer.periodic(
+      Duration(seconds: dockerPollSeconds),
+      (_) => _fetchDockerContainers(false),
+    );
+  }
+
   void _startMetricsStream() {
+    _startDockerPolling();
+
     if (_metricsSubscription != null) {
       _resumeStreamIfClients();
       return;
@@ -239,7 +276,7 @@ class Server {
           'availableKB': ev.memory.availableKB,
           'totalKB': ev.memory.totalKB,
         },
-        'docker': (await _getDockerContainers())
+        'docker': _latestDockerContainers
             .map(
               (c) => {
                 'id': c.id,
@@ -274,5 +311,10 @@ class Server {
         }
       }
     });
+  }
+
+  void _stopDockerPolling() {
+    _dockerPollTimer?.cancel();
+    _dockerPollTimer = null;
   }
 }
