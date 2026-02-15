@@ -73,16 +73,23 @@ class Server {
     final clickableHost = address == InternetAddress.anyIPv4
         ? 'localhost'
         : address.host;
-    log('Server listening on http://$clickableHost:$port');
+    info('Server listening on http://$clickableHost:$port');
 
     await server.map(_handleRequest).toList();
   }
 
   void _fetchDockerContainers(bool wasTriggedByCommand) {
-    if (_connectedClients.isEmpty) return;
+    if (_connectedClients.isEmpty) {
+      _stopDockerPolling();
+      return;
+    }
+
+    fine(
+      'Docker poll requested (${wasTriggedByCommand ? 'manual command' : 'scheduled'})',
+    );
 
     if (!wasTriggedByCommand && _dockerPollInFlight != null) {
-      log('Scheduled Docker poll skipped because an update is in flight');
+      fine('Scheduled Docker poll skipped because an update is in flight');
       return;
     }
 
@@ -94,11 +101,11 @@ class Server {
 
         final elapsedMs = stopwatch.elapsedMilliseconds;
         if (elapsedMs > 5000) {
-          log('Docker poll took ${elapsedMs}ms');
+          warning('Docker poll took ${elapsedMs}ms');
         }
       } catch (e) {
         final elapsedMs = stopwatch.elapsedMilliseconds;
-        log('Docker polling failed after ${elapsedMs}ms: $e');
+        error('Docker polling failed after ${elapsedMs}ms: $e');
       } finally {
         stopwatch.stop();
         _dockerPollInFlight = null;
@@ -109,6 +116,7 @@ class Server {
   }
 
   Future<void> _handleRequest(HttpRequest request) async {
+    fine('HTTP ${request.method} ${request.uri.path}');
     final response = request.response;
     if (request.uri.path == '/ws') {
       if (WebSocketTransformer.isUpgradeRequest(request)) {
@@ -140,6 +148,7 @@ class Server {
     ws.pingInterval = const Duration(seconds: 5);
 
     _connectedClients.add(ws);
+    fine('WebSocket client connected (count: ${_connectedClients.length})');
 
     // Immediately transmit the recent history.
     for (final message in _clientMetricsBuffer) {
@@ -170,11 +179,14 @@ class Server {
             _fetchDockerContainers(true);
           }
         } catch (e) {
-          log('Error handling message:\n$data:\n$e');
+          warning('Error handling message:\n$data:\n$e');
         }
       },
       onDone: () {
         if (_connectedClients.remove(ws)) {
+          fine(
+            'WebSocket client disconnected (count: ${_connectedClients.length})',
+          );
           _suspendTimer.reset();
         }
       },
@@ -189,7 +201,7 @@ class Server {
     if (_metricsSubscription case final sub? when !sub.isPaused) {
       _metricsSubscription?.pause();
       _clientMetricsBuffer.clear();
-      log('Paused metrics stream and cleared data buffer');
+      info('Paused metrics stream and cleared data buffer');
     }
   }
 
@@ -200,7 +212,7 @@ class Server {
 
     if (_metricsSubscription case final sub? when sub.isPaused) {
       _metricsSubscription?.resume();
-      log('Resumed metrics stream');
+      info('Resumed metrics stream');
 
       _suspendTimer.cancel();
     }
@@ -243,7 +255,9 @@ class Server {
   void _startDockerPolling() {
     if (_connectedClients.isEmpty || _dockerPollTimer != null) return;
 
+    info('Starting docker polling loop');
     _fetchDockerContainers(false);
+    _dockerPollTimer?.cancel();
     _dockerPollTimer = Timer.periodic(
       Duration(seconds: dockerPollSeconds),
       (_) => _fetchDockerContainers(false),
@@ -258,8 +272,9 @@ class Server {
       return;
     }
 
-    log('Starting metrics stream');
+    info('Starting metrics stream');
     _metricsSubscription = metricsStream.listen((ev) async {
+      fine('Processing metrics event');
       final message = {
         if (ev.gpu case final gpu?)
           'gpu': {
@@ -307,14 +322,16 @@ class Server {
         try {
           client.add(jsonPayload);
         } catch (e) {
-          log('Error sending to client: $e');
+          warning('Error sending to client: $e');
         }
       }
     });
   }
 
   void _stopDockerPolling() {
+    _latestDockerContainers = [];
     _dockerPollTimer?.cancel();
     _dockerPollTimer = null;
+    info('Stopped docker polling loop');
   }
 }

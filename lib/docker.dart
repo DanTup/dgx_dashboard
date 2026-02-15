@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'utils.dart';
+
 /// Represents a Docker container with status/details.
 typedef DockerContainer = ({
   String id,
@@ -18,16 +20,20 @@ class DockerMonitor {
   /// Returns a list of all Docker containers.
   Future<List<DockerContainer>> getContainers() async {
     try {
-      final result = await Process.run('docker', [
+      final listArgs = [
         'container',
         'ls',
         '--all',
         '--no-trunc',
         '--format',
         '{{.ID}}|{{.Image}}|{{.Command}}|{{.CreatedAt}}|{{.Status}}|{{.Ports}}|{{.Names}}',
-      ]);
+      ];
+      fine('Executing process: docker ${listArgs.join(' ')}');
+      final result = await Process.run('docker', listArgs);
+      fine('Process docker container ls exited with code ${result.exitCode}');
 
       if (result.exitCode != 0) {
+        warning('docker container ls failed with code ${result.exitCode}');
         return [];
       }
 
@@ -38,14 +44,17 @@ class DockerMonitor {
       }
 
       // Fetch stats to get CPU/Memory usage.
-      final statsResult = await Process.run('docker', [
+      final statsArgs = [
         'stats',
         '--all',
         '--no-stream',
         '--no-trunc',
         '--format',
         '{{.ID}}|{{.CPUPerc}}|{{.MemUsage}}',
-      ]);
+      ];
+      fine('Executing process: docker ${statsArgs.join(' ')}');
+      final statsResult = await Process.run('docker', statsArgs);
+      fine('Process docker stats exited with code ${statsResult.exitCode}');
 
       final statsMap = <String, ({String cpu, String memory})>{};
       if (statsResult.exitCode == 0) {
@@ -57,6 +66,8 @@ class DockerMonitor {
           final id = parts[0];
           statsMap[id] = (cpu: parts[1], memory: parts[2]);
         }
+      } else {
+        warning('docker stats failed with code ${statsResult.exitCode}');
       }
 
       final containers = <DockerContainer>[];
@@ -80,6 +91,7 @@ class DockerMonitor {
       }
       return containers;
     } catch (e) {
+      error('Failed to query docker containers: $e');
       return [];
     }
   }
@@ -97,13 +109,21 @@ class DockerMonitor {
     // Ensure a valid container id (alphanumeric, underscore, hyphen, period).
     // Must be 1-255 chars, no path separators or shell metacharacters.
     if (!RegExp(r'^[a-zA-Z0-9_.-]{1,255}$').hasMatch(id)) {
+      warning('Rejected docker command due to invalid container id: $id');
       return false;
     }
 
     try {
-      final result = await Process.run('docker', [command, id]);
+      final args = [command, id];
+      fine('Executing process: docker ${args.join(' ')}');
+      final result = await Process.run('docker', args);
+      fine('Process docker $command exited with code ${result.exitCode}');
+      if (result.exitCode != 0) {
+        warning('docker $command failed for $id with code ${result.exitCode}');
+      }
       return result.exitCode == 0;
     } catch (e) {
+      error('Failed to run docker $command for $id: $e');
       return false;
     }
   }

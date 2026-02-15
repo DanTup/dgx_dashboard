@@ -3,6 +3,7 @@ import 'dart:core';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:args/args.dart';
 import 'package:dgx_dashboard/constants.dart';
 import 'package:dgx_dashboard/conversions.dart';
 import 'package:dgx_dashboard/cpu.dart';
@@ -11,8 +12,13 @@ import 'package:dgx_dashboard/gpu.dart';
 import 'package:dgx_dashboard/memory.dart';
 import 'package:dgx_dashboard/server.dart';
 import 'package:dgx_dashboard/temps.dart';
+import 'package:dgx_dashboard/utils.dart';
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
+  final parser = ArgParser()..addFlag('verbose', abbr: 'v', negatable: false);
+  final results = parser.parse(args);
+  configureLogging(verbose: results.flag('verbose'));
+
   final server = Server(
     MockGpuMonitor(),
     MockCpuMonitor(),

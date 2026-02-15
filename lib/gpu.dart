@@ -55,12 +55,12 @@ class GpuMonitor {
     if (_metricsController.hasListener && !_metricsController.isPaused) {
       _stop();
       if (_remainingRestarts > 0) {
-        log(
+        warning(
           'nvidia-smi process terminated unexpectedly - ${--_remainingRestarts} restarts remaining',
         );
         Future<void>.delayed(const Duration(seconds: 5)).then((_) => _start());
       } else {
-        log('nvidia-smi process terminated unexpectedly - will not restart');
+        error('nvidia-smi process terminated unexpectedly - will not restart');
         _metricsController.add(null);
       }
     }
@@ -68,9 +68,10 @@ class GpuMonitor {
 
   /// Parse an output line from `nvidia-smi` and emit an event with the metrics.
   void _parseAndEmitMetrics(String line) {
+    fine('nvidia-smi metrics line: $line');
     final parts = line.split(',').map((s) => s.trim()).toList();
     if (parts.length < 3) {
-      log('unexpected nvidia-smi output: $line');
+      warning('unexpected nvidia-smi output: $line');
       return;
     }
 
@@ -82,7 +83,7 @@ class GpuMonitor {
       ));
     } catch (_) {
       // Ignore malformed lines.
-      log('unparsable nvidia-smi output: $line');
+      warning('unparsable nvidia-smi output: $line');
     }
   }
 
@@ -90,18 +91,28 @@ class GpuMonitor {
   /// running.
   Future<void> _start() async {
     if (_isRunning) return;
+    fine('Starting nvidia-smi process');
 
     try {
       // Use the shared poll interval constant.
-      final process = _nvidiaSmiProcess = await Process.start('nvidia-smi', [
+      final args = [
         '--query-gpu=utilization.gpu,temperature.gpu,power.draw',
         '--format=csv,noheader,nounits',
         '-l=$pollSeconds',
-      ]);
+      ];
+      fine('Executing process: nvidia-smi ${args.join(' ')}');
+      final process = _nvidiaSmiProcess = await Process.start(
+        'nvidia-smi',
+        args,
+      );
 
       unawaited(
         process.exitCode.then((code) {
-          log('nvidia-smi exited with code $exitCode');
+          if (code == 0) {
+            fine('nvidia-smi exited with code 0');
+          } else {
+            warning('nvidia-smi exited with code $code');
+          }
         }),
       );
 
@@ -120,18 +131,20 @@ class GpuMonitor {
       process.stderr.transform(utf8.decoder).listen((errorOutput) {
         final trimmed = errorOutput.trim();
         if (trimmed.isNotEmpty) {
-          log('nvidia-smi stderr: $trimmed');
+          warning('nvidia-smi stderr: $trimmed');
           _metricsController.addError(StateError('nvidia-smi: $trimmed'));
         }
       });
-    } catch (error, stackTrace) {
-      _metricsController.addError(error, stackTrace);
+    } catch (e, stackTrace) {
+      error('Failed to start nvidia-smi process: $e');
+      _metricsController.addError(e, stackTrace);
       _stop();
     }
   }
 
   /// Stops the `nvidia-smi` process.
   void _stop() {
+    fine('Stopping nvidia-smi process');
     _processOutputSubscription?.cancel();
     _processOutputSubscription = null;
     _nvidiaSmiProcess?.kill();
