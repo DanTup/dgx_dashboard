@@ -5,7 +5,11 @@ const dockerPollSeconds = 10;
 const keepEvents = 20;
 
 /// The maximum number of times we'll restart nvidia-smi if it's crashing.
-const maxNvidiaSmiRestarts = 5;
+const maxNvidiaSmiRestarts = 10;
+
+/// Number of consecutive successful metrics before resetting the restart
+/// counter. Prevents transient failures from accumulating over long uptime.
+const consecutiveSuccessesBeforeReset = 10;
 
 /// Number of seconds between each metrics poll.
 const pollSeconds = 5;

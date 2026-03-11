@@ -1,221 +1,662 @@
+/* ============================================================
+   Theme system: CSS custom properties
+   ============================================================ */
 :root {
-	--progress-bar-height: 1px;
+    --progress-bar-height: 1px;
+
+    /* Light theme (default) */
+    --bg: #ffffff;
+    --bg-secondary: #f9f9f9;
+    --text: #222222;
+    --text-secondary: #555555;
+    --text-muted: #999999;
+    --border: #cccccc;
+    --border-light: #eeeeee;
+    --hover-bg: #f0f0f9;
+    --group-border: #cccccc;
+    --group-radius: 8px;
+    --group-shadow: none;
+    --btn-bg: #ffffff;
+    --btn-border: #cccccc;
+    --btn-hover-bg: #f0f0f0;
+    --font-body: sans-serif;
+    --font-heading: sans-serif;
+    --font-mono: monospace;
+    --link-color: #999999;
+    --status-connected: #4ec9b0;
+    --status-error: #f48771;
+    --status-warning: #ce9178;
+    --warning-bg: #f48771;
+    --warning-code-bg: #f2917e;
+    --chart-grid: rgba(0, 0, 0, 0.1);
+    --chart-text: #666666;
+    --chart-legend: #666666;
+    --gauge-empty: rgb(230, 230, 230);
+    --gauge-label: black;
+    --gauge-sublabel: gray;
+    --loading-bg: #ffffff;
+    --loading-bar-bg: #e0e0e0;
+    --loading-bar-fill: rgb(54, 162, 235);
+    --loading-text: #555555;
 }
 
+[data-theme="dark"] {
+    --bg: #1a1a2e;
+    --bg-secondary: #16213e;
+    --text: #e0e0e0;
+    --text-secondary: #a0a0a0;
+    --text-muted: #666666;
+    --border: #333355;
+    --border-light: #2a2a4a;
+    --hover-bg: #1f1f3a;
+    --group-border: #333355;
+    --group-radius: 8px;
+    --group-shadow: none;
+    --btn-bg: #16213e;
+    --btn-border: #333355;
+    --btn-hover-bg: #1f1f3a;
+    --link-color: #6688aa;
+    --status-connected: #4ec9b0;
+    --status-error: #f48771;
+    --status-warning: #ce9178;
+    --warning-bg: #8b3a2e;
+    --warning-code-bg: #6b2a1e;
+    --chart-grid: rgba(255, 255, 255, 0.1);
+    --chart-text: #aaaaaa;
+    --chart-legend: #cccccc;
+    --gauge-empty: #2a2a4a;
+    --gauge-label: #e0e0e0;
+    --gauge-sublabel: #888888;
+    --loading-bg: #1a1a2e;
+    --loading-bar-bg: #333355;
+    --loading-bar-fill: #4ec9b0;
+    --loading-text: #a0a0a0;
+}
+
+[data-theme="brutalist"] {
+    --bg: #0a0a0a;
+    --bg-secondary: #111111;
+    --text: #00ff41;
+    --text-secondary: #00cc33;
+    --text-muted: #008822;
+    --border: #00ff41;
+    --border-light: #003300;
+    --hover-bg: #0f1f0f;
+    --group-border: #00ff41;
+    --group-radius: 0px;
+    --group-shadow: 4px 4px 0px #00ff41;
+    --btn-bg: #0a0a0a;
+    --btn-border: #00ff41;
+    --btn-hover-bg: #003300;
+    --link-color: #00ccff;
+    --status-connected: #00ff41;
+    --status-error: #ff0055;
+    --status-warning: #ffaa00;
+    --warning-bg: #440000;
+    --warning-code-bg: #660000;
+    --chart-grid: rgba(0, 255, 65, 0.15);
+    --chart-text: #00ff41;
+    --chart-legend: #00ff41;
+    --gauge-empty: #1a1a1a;
+    --gauge-label: #00ff41;
+    --gauge-sublabel: #008822;
+    --loading-bg: #0a0a0a;
+    --loading-bar-bg: #1a1a1a;
+    --loading-bar-fill: #00ff41;
+    --loading-text: #00ff41;
+}
+
+/* ============================================================
+   Base styles
+   ============================================================ */
 * {
-	font-family: sans-serif;
+    font-family: var(--font-body);
+}
+
+[data-theme="brutalist"] * {
+    font-family: 'Courier New', monospace;
 }
 
 body {
-	margin: 0;
+    margin: 0;
+    background-color: var(--bg);
+    color: var(--text);
+    transition: background-color 0.3s, color 0.3s;
 }
 
-/* Progress bar at top indicating time until next data refresh */
+a {
+    color: var(--link-color);
+}
+
+/* ============================================================
+   Loading overlay
+   ============================================================ */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--loading-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.4s;
+}
+
+.loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-bar {
+    width: 200px;
+    height: 4px;
+    background-color: var(--loading-bar-bg);
+    margin: 0 auto 16px;
+    overflow: hidden;
+    position: relative;
+}
+
+[data-theme="brutalist"] .loading-bar {
+    border: 2px solid var(--border);
+    height: 8px;
+}
+
+.loading-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -40%;
+    width: 40%;
+    height: 100%;
+    background-color: var(--loading-bar-fill);
+    animation: loading-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes loading-slide {
+    0% { left: -40%; }
+    100% { left: 100%; }
+}
+
+.loading-text {
+    color: var(--loading-text);
+    font-size: 14px;
+}
+
+.loading-overlay.error .loading-bar::after {
+    animation: none;
+    background-color: var(--status-error);
+    left: 0;
+    width: 100%;
+}
+
+.loading-overlay.error .loading-text {
+    color: var(--status-error);
+}
+
+/* ============================================================
+   Pixel rain canvas
+   ============================================================ */
+.pixel-rain-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    display: none;
+}
+
+[data-theme="brutalist"] .pixel-rain-canvas {
+    display: block;
+}
+
+/* ============================================================
+   Progress bar
+   ============================================================ */
 #progress-bar {
-	position: fixed;
-	top: 0;
-	right: 0;
-	height: var(--progress-bar-height);
-	background-color: rgb(54, 162, 235);
-	width: 100%;
-	transition: width linear;
-	z-index: 1000;
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: var(--progress-bar-height);
+    background-color: rgb(54, 162, 235);
+    width: 100%;
+    transition: width linear;
+    z-index: 1000;
 }
 
+[data-theme="brutalist"] #progress-bar {
+    height: 3px;
+    background-color: #00ff41;
+}
+
+/* ============================================================
+   Layout
+   ============================================================ */
 .page {
-	max-width: 1400px;
-	margin: auto;
-	margin-top: var(--progress-bar-height);
-	margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: auto;
+    margin-top: var(--progress-bar-height);
+    margin-bottom: 10px;
 }
 
 h1 {
-	display: inline-block;
-	margin-bottom: 10px;
+    display: inline-block;
+    margin-bottom: 10px;
+    color: var(--text);
+}
+
+[data-theme="brutalist"] h1 {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+h3 {
+    color: var(--text);
 }
 
 #header {
-	position: relative;
+    position: relative;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    margin-left: 12px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background-color: var(--btn-bg);
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.8em;
+    vertical-align: middle;
+}
+
+.theme-toggle:hover {
+    background-color: var(--btn-hover-bg);
+}
+
+[data-theme="brutalist"] .theme-toggle {
+    border: 3px solid var(--border);
+    border-radius: 0;
+    box-shadow: 3px 3px 0px var(--border);
+    text-transform: uppercase;
+    font-weight: bold;
+    color: var(--text);
 }
 
 #links {
-	position: absolute;
-	right: 0;
-	bottom: 10px;
+    position: absolute;
+    right: 0;
+    bottom: 10px;
 }
 
 #links a {
-	color: #999;
-	display: inline-block;
-	margin: 0 5px;
-	font-size: 0.9em;
+    color: var(--link-color);
+    display: inline-block;
+    margin: 0 5px;
+    font-size: 0.9em;
 }
 
+/* ============================================================
+   Graphs
+   ============================================================ */
 .graphs {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .group {
-	border: 1px solid #ccc;
-	padding: 10px;
-	border-radius: 8px;
+    border: 1px solid var(--group-border);
+    padding: 10px;
+    border-radius: var(--group-radius);
+    box-shadow: var(--group-shadow);
+    background-color: var(--bg);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+[data-theme="brutalist"] .group {
+    border-width: 3px;
 }
 
 .group.full {
-	flex-basis: 100%;
+    flex-basis: 100%;
 }
 
 .group.half {
-	flex-basis: calc(50% - 32px);
+    flex-basis: calc(50% - 32px);
 }
 
 .subgraphs {
-	display: flex;
+    display: flex;
 }
 
 .subgroup.half {
-	flex-basis: 50%;
+    flex-basis: 50%;
 }
 
 .group h3 {
-	margin: 0 0 5px;
-	text-align: center;
+    margin: 0 0 5px;
+    text-align: center;
+}
+
+[data-theme="brutalist"] .group h3 {
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .chart-container {
-	width: 100%;
-	height: 250px;
+    width: 100%;
+    height: 250px;
 }
 
 .chart-container.small {
-	width: 100%;
-	height: 200px;
+    width: 100%;
+    height: 200px;
 }
 
 #memory-gauge {
-	max-height: 180px;
+    max-height: 180px;
 }
 
 .power-label {
-	text-align: center;
-	font-size: 16px;
-	margin-top: 10px;
+    text-align: center;
+    font-size: 16px;
+    margin-top: 10px;
+    color: var(--text-secondary);
 }
 
+/* ============================================================
+   Docker table
+   ============================================================ */
 .docker-table {
-	width: 100%;
-	border-collapse: collapse;
+    width: 100%;
+    border-collapse: collapse;
 }
 
 .docker-table th,
 .docker-table td {
-	text-align: left;
-	padding: 8px;
-	border-bottom: 1px solid #eee;
+    text-align: left;
+    padding: 8px;
+    border-bottom: 1px solid var(--border-light);
 }
 
 .docker-table th {
-	background-color: #f9f9f9;
-	font-weight: bold;
+    background-color: var(--bg-secondary);
+    font-weight: bold;
+    color: var(--text);
 }
 
 .docker-table tr:hover {
-	background-color: #f0f0f9;
+    background-color: var(--hover-bg);
 }
 
 .docker-table tr:last-child td {
-	border-bottom: none;
+    border-bottom: none;
+}
+
+[data-theme="brutalist"] .docker-table th,
+[data-theme="brutalist"] .docker-table td {
+    border-bottom: 2px solid var(--border);
+}
+
+[data-theme="brutalist"] .docker-table tr:nth-child(even) {
+    background-color: #0f1f0f;
+}
+
+/* Collapsible columns for mobile */
+@media (max-width: 900px) {
+    .collapsible-col {
+        display: none;
+    }
 }
 
 .mono {
-	font-family: monospace;
-	color: #555;
-}
-
-.status-badge {
-	display: inline-block;
-	padding: 2px 6px;
-	border-radius: 4px;
-	border: 1px solid #b7ebdf;
-	font-size: 0.85em;
-	font-weight: bold;
-}
-
-.status-running {
-	background-color: #e6fffa;
-	color: #009068;
-}
-
-.status-stopped {
-	background-color: #fff5f5;
-	color: #c53030;
-	border-color: #feb2b2;
-}
-
-#nvidia-smi-crash-warning {
-	background-color: #f48771;
-	border-radius: 5px;
-	padding: 10px 15px;
-	margin: 5px 0 15px;
-}
-
-#nvidia-smi-crash-warning>* {
-	margin: 0;
-}
-
-#nvidia-smi-crash-warning>*:not(:last-child) {
-	margin-bottom: 15px;
-}
-
-#nvidia-smi-crash-warning code {
-	font-family: monospace;
-	background-color: #f2917e;
-	padding: 3px;
-	border-radius: 3px;
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
 }
 
 .name {
-	font-size: 1.1em;
-	font-weight: bold;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: var(--text);
 }
 
 .detail {
-	color: #999;
-	font-size: 0.75em;
+    color: var(--text-muted);
+    font-size: 0.75em;
 }
 
+/* ============================================================
+   Status badges
+   ============================================================ */
+.status-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #b7ebdf;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+
+[data-theme="brutalist"] .status-badge {
+    border-radius: 0;
+    border-width: 2px;
+}
+
+.status-running {
+    background-color: #e6fffa;
+    color: #009068;
+}
+
+.status-stopped {
+    background-color: #fff5f5;
+    color: #c53030;
+    border-color: #feb2b2;
+}
+
+[data-theme="dark"] .status-running {
+    background-color: #0d3d30;
+    color: #4ec9b0;
+    border-color: #2a6a55;
+}
+
+[data-theme="dark"] .status-stopped {
+    background-color: #3d1515;
+    color: #f48771;
+    border-color: #6b2a2a;
+}
+
+[data-theme="brutalist"] .status-running {
+    background-color: transparent;
+    color: #00ff41;
+    border-color: #00ff41;
+}
+
+[data-theme="brutalist"] .status-stopped {
+    background-color: transparent;
+    color: #ff0055;
+    border-color: #ff0055;
+}
+
+/* ============================================================
+   nvidia-smi crash warning
+   ============================================================ */
+#nvidia-smi-crash-warning {
+    background-color: var(--warning-bg);
+    border-radius: 5px;
+    padding: 10px 15px;
+    margin: 5px 0 15px;
+    color: var(--text);
+}
+
+[data-theme="brutalist"] #nvidia-smi-crash-warning {
+    border: 3px solid #ff0055;
+    border-radius: 0;
+    box-shadow: 4px 4px 0px #ff0055;
+}
+
+#nvidia-smi-crash-warning>* {
+    margin: 0;
+}
+
+#nvidia-smi-crash-warning>*:not(:last-child) {
+    margin-bottom: 15px;
+}
+
+#nvidia-smi-crash-warning code {
+    font-family: var(--font-mono);
+    background-color: var(--warning-code-bg);
+    padding: 3px;
+    border-radius: 3px;
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
 .actions button {
-	min-width: 80px;
-	padding: 4px 8px;
-	border: 1px solid #ccc;
-	border-radius: 4px;
-	background-color: #fff;
-	cursor: pointer;
-	font-size: 0.9em;
+    min-width: 80px;
+    padding: 4px 8px;
+    border: 1px solid var(--btn-border);
+    border-radius: 4px;
+    background-color: var(--btn-bg);
+    cursor: pointer;
+    font-size: 0.9em;
 }
 
 .actions button:hover {
-	background-color: #f0f0f0;
+    background-color: var(--btn-hover-bg);
+}
+
+[data-theme="brutalist"] .actions button {
+    border: 2px solid var(--border);
+    border-radius: 0;
+    box-shadow: 2px 2px 0px var(--border);
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 0.8em;
 }
 
 .start-btn {
-	color: #009068;
+    color: #009068;
 }
 
 .stop-btn {
-	color: #c53030;
+    color: #c53030;
 }
 
 .restart-btn {
-	color: #ccaa12;
+    color: #ccaa12;
 }
 
+.logs-btn {
+    color: #6688cc;
+}
+
+[data-theme="brutalist"] .start-btn { color: #00ff41; }
+[data-theme="brutalist"] .stop-btn { color: #ff0055; }
+[data-theme="brutalist"] .restart-btn { color: #ffaa00; }
+[data-theme="brutalist"] .logs-btn { color: #00ccff; }
+
+[data-theme="dark"] .start-btn { color: #4ec9b0; }
+[data-theme="dark"] .stop-btn { color: #f48771; }
+[data-theme="dark"] .restart-btn { color: #dbb844; }
+[data-theme="dark"] .logs-btn { color: #6688cc; }
+
 .actions button:disabled {
-	opacity: 0.5;
-	cursor: default;
-	background-color: #f5f5f5;
-	border-color: #ddd;
-	color: #999;
+    opacity: 0.5;
+    cursor: default;
+    background-color: var(--bg-secondary);
+    border-color: var(--border);
+    color: var(--text-muted);
+}
+
+/* ============================================================
+   Docker log panel
+   ============================================================ */
+.docker-log-panel {
+    border-top: 2px solid var(--border);
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+[data-theme="brutalist"] .docker-log-panel {
+    border-top: 3px solid var(--border);
+}
+
+.docker-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    color: var(--text);
+    font-weight: bold;
+}
+
+.docker-log-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.scroll-lock-label {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.log-close-btn {
+    padding: 4px 12px;
+    border: 1px solid var(--btn-border);
+    border-radius: 4px;
+    background-color: var(--btn-bg);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 0.85em;
+}
+
+.log-close-btn:hover {
+    background-color: var(--btn-hover-bg);
+}
+
+[data-theme="brutalist"] .log-close-btn {
+    border: 2px solid var(--border);
+    border-radius: 0;
+    box-shadow: 2px 2px 0px var(--border);
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.docker-log-content {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    padding: 10px;
+    margin: 0;
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+[data-theme="brutalist"] .docker-log-content {
+    border: 2px solid var(--border);
+    border-radius: 0;
+    background-color: #000000;
+    color: #00ff41;
 }

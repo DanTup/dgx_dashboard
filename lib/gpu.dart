@@ -21,6 +21,10 @@ class GpuMonitor {
   /// The number of restarts of nvidia-smi remaining.
   var _remainingRestarts = maxNvidiaSmiRestarts;
 
+  /// Consecutive successful metric emissions. Resets [_remainingRestarts] after
+  /// [consecutiveSuccessesBeforeReset] successes.
+  var _consecutiveSuccesses = 0;
+
   /// Creates a new GPU monitor.
   ///
   /// The monitor will automatically start and stop the `nvidia-smi` process
@@ -51,6 +55,7 @@ class GpuMonitor {
   bool get _isRunning => _nvidiaSmiProcess != null;
 
   void _handleProcessDone() {
+    _consecutiveSuccesses = 0;
     // If `nvidia-smi` quit but consumer still wants data, attempt restart.
     if (_metricsController.hasListener && !_metricsController.isPaused) {
       _stop();
@@ -81,6 +86,14 @@ class GpuMonitor {
         temperatureC: int.parse(parts[1]),
         powerW: double.parse(parts[2]),
       ));
+
+      // Reset restart budget after sustained success.
+      if (++_consecutiveSuccesses >= consecutiveSuccessesBeforeReset &&
+          _remainingRestarts < maxNvidiaSmiRestarts) {
+        _remainingRestarts = maxNvidiaSmiRestarts;
+        info('nvidia-smi restart counter reset after $_consecutiveSuccesses consecutive successes');
+        _consecutiveSuccesses = 0;
+      }
     } catch (_) {
       // Ignore malformed lines.
       warning('unparsable nvidia-smi output: $line');
