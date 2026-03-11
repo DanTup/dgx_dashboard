@@ -38,6 +38,10 @@
     --loading-bar-bg: #e0e0e0;
     --loading-bar-fill: rgb(54, 162, 235);
     --loading-text: #555555;
+    --accent: #4ec9b0;
+    --heatmap-low: #e8f5e9;
+    --heatmap-mid: #ffb74d;
+    --heatmap-high: #e53935;
 }
 
 [data-theme="dark"] {
@@ -71,6 +75,10 @@
     --loading-bar-bg: #333355;
     --loading-bar-fill: #4ec9b0;
     --loading-text: #a0a0a0;
+    --accent: #4ec9b0;
+    --heatmap-low: #1b3a2a;
+    --heatmap-mid: #8b5e00;
+    --heatmap-high: #d32f2f;
 }
 
 [data-theme="brutalist"] {
@@ -104,6 +112,280 @@
     --loading-bar-bg: #1a1a1a;
     --loading-bar-fill: #00ff41;
     --loading-text: #00ff41;
+    --accent: #00ff41;
+    --heatmap-low: #001100;
+    --heatmap-mid: #005500;
+    --heatmap-high: #00ff41;
+}
+
+[data-theme="solarized"] {
+    --bg: #002b36;
+    --bg-secondary: #073642;
+    --text: #839496;
+    --text-secondary: #657b83;
+    --text-muted: #586e75;
+    --border: #073642;
+    --border-light: #073642;
+    --hover-bg: #073642;
+    --group-border: #586e75;
+    --group-radius: 6px;
+    --group-shadow: none;
+    --btn-bg: #073642;
+    --btn-border: #586e75;
+    --btn-hover-bg: #002b36;
+    --link-color: #268bd2;
+    --status-connected: #2aa198;
+    --status-error: #dc322f;
+    --status-warning: #cb4b16;
+    --warning-bg: #3b1a1a;
+    --warning-code-bg: #4b2a1a;
+    --chart-grid: rgba(88, 110, 117, 0.3);
+    --chart-text: #839496;
+    --chart-legend: #93a1a1;
+    --gauge-empty: #073642;
+    --gauge-label: #93a1a1;
+    --gauge-sublabel: #657b83;
+    --loading-bg: #002b36;
+    --loading-bar-bg: #073642;
+    --loading-bar-fill: #2aa198;
+    --loading-text: #839496;
+    --accent: #2aa198;
+    --heatmap-low: #073642;
+    --heatmap-mid: #b58900;
+    --heatmap-high: #dc322f;
+}
+
+[data-theme="dracula"] {
+    --bg: #282a36;
+    --bg-secondary: #44475a;
+    --text: #f8f8f2;
+    --text-secondary: #bd93f9;
+    --text-muted: #6272a4;
+    --border: #44475a;
+    --border-light: #44475a;
+    --hover-bg: #383a4c;
+    --group-border: #6272a4;
+    --group-radius: 8px;
+    --group-shadow: none;
+    --btn-bg: #44475a;
+    --btn-border: #6272a4;
+    --btn-hover-bg: #383a4c;
+    --link-color: #8be9fd;
+    --status-connected: #50fa7b;
+    --status-error: #ff5555;
+    --status-warning: #ffb86c;
+    --warning-bg: #4b1a1a;
+    --warning-code-bg: #5b2a2a;
+    --chart-grid: rgba(98, 114, 164, 0.3);
+    --chart-text: #f8f8f2;
+    --chart-legend: #f8f8f2;
+    --gauge-empty: #44475a;
+    --gauge-label: #f8f8f2;
+    --gauge-sublabel: #6272a4;
+    --loading-bg: #282a36;
+    --loading-bar-bg: #44475a;
+    --loading-bar-fill: #bd93f9;
+    --loading-text: #f8f8f2;
+    --accent: #bd93f9;
+    --heatmap-low: #282a36;
+    --heatmap-mid: #ffb86c;
+    --heatmap-high: #ff5555;
+}
+
+[data-theme="nord"] {
+    --bg: #2e3440;
+    --bg-secondary: #3b4252;
+    --text: #eceff4;
+    --text-secondary: #d8dee9;
+    --text-muted: #4c566a;
+    --border: #3b4252;
+    --border-light: #3b4252;
+    --hover-bg: #434c5e;
+    --group-border: #4c566a;
+    --group-radius: 6px;
+    --group-shadow: none;
+    --btn-bg: #3b4252;
+    --btn-border: #4c566a;
+    --btn-hover-bg: #434c5e;
+    --link-color: #88c0d0;
+    --status-connected: #a3be8c;
+    --status-error: #bf616a;
+    --status-warning: #d08770;
+    --warning-bg: #3b2020;
+    --warning-code-bg: #4b3030;
+    --chart-grid: rgba(76, 86, 106, 0.4);
+    --chart-text: #d8dee9;
+    --chart-legend: #eceff4;
+    --gauge-empty: #3b4252;
+    --gauge-label: #eceff4;
+    --gauge-sublabel: #4c566a;
+    --loading-bg: #2e3440;
+    --loading-bar-bg: #3b4252;
+    --loading-bar-fill: #88c0d0;
+    --loading-text: #d8dee9;
+    --accent: #88c0d0;
+    --heatmap-low: #2e3440;
+    --heatmap-mid: #ebcb8b;
+    --heatmap-high: #bf616a;
+}
+
+[data-theme="nvidia"] {
+    --bg: #1a1a1a;
+    --bg-secondary: #222222;
+    --text: #e0e0e0;
+    --text-secondary: #76b900;
+    --text-muted: #666666;
+    --border: #333333;
+    --border-light: #2a2a2a;
+    --hover-bg: #2a2a2a;
+    --group-border: #76b900;
+    --group-radius: 4px;
+    --group-shadow: 0 0 8px rgba(118, 185, 0, 0.15);
+    --btn-bg: #222222;
+    --btn-border: #76b900;
+    --btn-hover-bg: #2a3a1a;
+    --link-color: #76b900;
+    --status-connected: #76b900;
+    --status-error: #ff4444;
+    --status-warning: #ffaa00;
+    --warning-bg: #3b1a1a;
+    --warning-code-bg: #4b2a1a;
+    --chart-grid: rgba(118, 185, 0, 0.15);
+    --chart-text: #aaaaaa;
+    --chart-legend: #e0e0e0;
+    --gauge-empty: #2a2a2a;
+    --gauge-label: #76b900;
+    --gauge-sublabel: #666666;
+    --loading-bg: #1a1a1a;
+    --loading-bar-bg: #333333;
+    --loading-bar-fill: #76b900;
+    --loading-text: #76b900;
+    --accent: #76b900;
+    --heatmap-low: #1a2a0a;
+    --heatmap-mid: #76b900;
+    --heatmap-high: #ff4444;
+}
+
+[data-theme="retro-amber"] {
+    --bg: #1a1000;
+    --bg-secondary: #221800;
+    --text: #ffb000;
+    --text-secondary: #cc8800;
+    --text-muted: #664400;
+    --border: #ffb000;
+    --border-light: #332200;
+    --hover-bg: #2a1a00;
+    --group-border: #ffb000;
+    --group-radius: 0px;
+    --group-shadow: 3px 3px 0px #ffb000;
+    --btn-bg: #1a1000;
+    --btn-border: #ffb000;
+    --btn-hover-bg: #332200;
+    --link-color: #ffcc44;
+    --status-connected: #ffb000;
+    --status-error: #ff4444;
+    --status-warning: #ff8800;
+    --warning-bg: #3b1a00;
+    --warning-code-bg: #4b2a00;
+    --chart-grid: rgba(255, 176, 0, 0.15);
+    --chart-text: #ffb000;
+    --chart-legend: #ffb000;
+    --gauge-empty: #221800;
+    --gauge-label: #ffb000;
+    --gauge-sublabel: #664400;
+    --loading-bg: #1a1000;
+    --loading-bar-bg: #221800;
+    --loading-bar-fill: #ffb000;
+    --loading-text: #ffb000;
+    --accent: #ffb000;
+    --heatmap-low: #1a1000;
+    --heatmap-mid: #cc8800;
+    --heatmap-high: #ff4444;
+}
+
+[data-theme="glass"] {
+    --bg: rgba(15, 15, 35, 0.85);
+    --bg-secondary: rgba(30, 30, 60, 0.7);
+    --text: #e8e8f0;
+    --text-secondary: #b0b0d0;
+    --text-muted: #6a6a8a;
+    --border: rgba(140, 140, 200, 0.25);
+    --border-light: rgba(100, 100, 160, 0.15);
+    --hover-bg: rgba(80, 80, 140, 0.15);
+    --group-border: rgba(140, 140, 200, 0.3);
+    --group-radius: 12px;
+    --group-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --btn-bg: rgba(40, 40, 80, 0.6);
+    --btn-border: rgba(140, 140, 200, 0.3);
+    --btn-hover-bg: rgba(80, 80, 140, 0.3);
+    --font-body: sans-serif;
+    --font-heading: sans-serif;
+    --font-mono: monospace;
+    --link-color: #8cb4ff;
+    --status-connected: #6ee7b7;
+    --status-error: #fca5a5;
+    --status-warning: #fcd34d;
+    --warning-bg: rgba(120, 30, 30, 0.5);
+    --warning-code-bg: rgba(100, 30, 30, 0.6);
+    --chart-grid: rgba(140, 140, 200, 0.12);
+    --chart-text: #b0b0d0;
+    --chart-legend: #e8e8f0;
+    --gauge-empty: rgba(40, 40, 80, 0.5);
+    --gauge-label: #e8e8f0;
+    --gauge-sublabel: #6a6a8a;
+    --loading-bg: #0f0f23;
+    --loading-bar-bg: rgba(40, 40, 80, 0.5);
+    --loading-bar-fill: #8cb4ff;
+    --loading-text: #b0b0d0;
+    --accent: #8cb4ff;
+    --heatmap-low: rgba(20, 20, 50, 0.8);
+    --heatmap-mid: #f59e0b;
+    --heatmap-high: #ef4444;
+}
+
+/* Glass theme: frosted panels + animated gradient background */
+[data-theme="glass"] body {
+    background: #0f0f23;
+}
+
+[data-theme="glass"] .group {
+    backdrop-filter: blur(16px);
+    background: var(--bg);
+    border: 1px solid var(--group-border);
+}
+
+[data-theme="glass"] .docker-table th {
+    background-color: rgba(30, 30, 60, 0.5);
+}
+
+/* Glass animated gradient background */
+.glass-gradient-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    display: none;
+    background: linear-gradient(135deg,
+        #0f0f23 0%,
+        #1a1040 25%,
+        #0f2030 50%,
+        #1a0f30 75%,
+        #0f0f23 100%);
+    background-size: 400% 400%;
+    animation: glass-gradient-shift 20s ease infinite;
+}
+
+[data-theme="glass"] .glass-gradient-bg {
+    display: block;
+}
+
+@keyframes glass-gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 /* ============================================================
@@ -113,7 +395,8 @@
     font-family: var(--font-body);
 }
 
-[data-theme="brutalist"] * {
+[data-theme="brutalist"] *,
+[data-theme="retro-amber"] * {
     font-family: 'Courier New', monospace;
 }
 
@@ -163,7 +446,8 @@ a {
     position: relative;
 }
 
-[data-theme="brutalist"] .loading-bar {
+[data-theme="brutalist"] .loading-bar,
+[data-theme="retro-amber"] .loading-bar {
     border: 2px solid var(--border);
     height: 8px;
 }
@@ -226,15 +510,15 @@ a {
     top: 0;
     right: 0;
     height: var(--progress-bar-height);
-    background-color: rgb(54, 162, 235);
+    background-color: var(--accent);
     width: 100%;
     transition: width linear;
     z-index: 1000;
 }
 
-[data-theme="brutalist"] #progress-bar {
+[data-theme="brutalist"] #progress-bar,
+[data-theme="retro-amber"] #progress-bar {
     height: 3px;
-    background-color: #00ff41;
 }
 
 /* ============================================================
@@ -255,7 +539,8 @@ h1 {
     color: var(--text);
 }
 
-[data-theme="brutalist"] h1 {
+[data-theme="brutalist"] h1,
+[data-theme="retro-amber"] h1 {
     text-transform: uppercase;
     letter-spacing: 2px;
 }
@@ -268,43 +553,221 @@ h3 {
     position: relative;
 }
 
-/* Theme toggle button */
-.theme-toggle {
-    margin-left: 12px;
+/* ============================================================
+   Theme controls (dropdown + accent picker)
+   ============================================================ */
+.theme-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.theme-select {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background-color: var(--btn-bg);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 0.8em;
+}
+
+[data-theme="brutalist"] .theme-select,
+[data-theme="retro-amber"] .theme-select {
+    border: 2px solid var(--border);
+    border-radius: 0;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.accent-picker {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.accent-label {
+    font-size: 0.75em;
+    color: var(--text-muted);
+}
+
+.accent-input {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    background: none;
+}
+
+[data-theme="brutalist"] .accent-input,
+[data-theme="retro-amber"] .accent-input {
+    border: 2px solid var(--border);
+    border-radius: 0;
+}
+
+/* ============================================================
+   Header controls layout
+   ============================================================ */
+.header-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    vertical-align: middle;
+}
+
+/* ============================================================
+   Links dropdown
+   ============================================================ */
+.links-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.links-toggle-btn {
     padding: 4px 10px;
     border: 1px solid var(--border);
     border-radius: 4px;
     background-color: var(--btn-bg);
-    color: var(--text-muted);
+    color: var(--text);
     cursor: pointer;
     font-size: 0.8em;
-    vertical-align: middle;
 }
 
-.theme-toggle:hover {
+.links-toggle-btn:hover {
     background-color: var(--btn-hover-bg);
 }
 
-[data-theme="brutalist"] .theme-toggle {
-    border: 3px solid var(--border);
+[data-theme="brutalist"] .links-toggle-btn,
+[data-theme="retro-amber"] .links-toggle-btn {
+    border: 2px solid var(--border);
     border-radius: 0;
-    box-shadow: 3px 3px 0px var(--border);
     text-transform: uppercase;
     font-weight: bold;
+    box-shadow: 2px 2px 0px var(--border);
+}
+
+.links-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 4px;
+    min-width: 160px;
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    padding: 4px 0;
+}
+
+.links-menu.open {
+    display: block;
+}
+
+[data-theme="brutalist"] .links-menu,
+[data-theme="retro-amber"] .links-menu {
+    border: 2px solid var(--border);
+    border-radius: 0;
+    box-shadow: 4px 4px 0px var(--border);
+}
+
+[data-theme="glass"] .links-menu {
+    background: var(--bg);
+    backdrop-filter: blur(16px);
+}
+
+.links-menu a {
+    display: block;
+    padding: 6px 14px;
+    color: var(--link-color);
+    text-decoration: none;
+    font-size: 0.85em;
+}
+
+.links-menu a:hover {
+    background-color: var(--hover-bg);
+}
+
+/* ============================================================
+   GPU info bar
+   ============================================================ */
+.gpu-stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    justify-content: center;
+    padding: 4px 0;
+}
+
+.gpu-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+}
+
+.gpu-stat-label {
+    font-size: 0.7em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.gpu-stat-value {
+    font-size: 1.1em;
+    font-weight: bold;
+    font-family: var(--font-mono);
     color: var(--text);
 }
 
-#links {
-    position: absolute;
-    right: 0;
-    bottom: 10px;
+.throttle-warning {
+    color: var(--status-error) !important;
 }
 
-#links a {
-    color: var(--link-color);
-    display: inline-block;
-    margin: 0 5px;
-    font-size: 0.9em;
+/* ============================================================
+   CPU core heatmap
+   ============================================================ */
+.core-heatmap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+    justify-content: center;
+}
+
+.core-cell {
+    width: 56px;
+    height: 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.75em;
+    transition: background-color 0.3s;
+}
+
+[data-theme="brutalist"] .core-cell,
+[data-theme="retro-amber"] .core-cell {
+    border: 2px solid var(--border);
+    border-radius: 0;
+}
+
+.core-cell-id {
+    font-size: 0.6em;
+    color: var(--text-muted);
+    line-height: 1;
+}
+
+.core-cell-value {
+    font-weight: bold;
+    font-size: 1.05em;
+    line-height: 1.2;
 }
 
 /* ============================================================
@@ -325,7 +788,8 @@ h3 {
     transition: background-color 0.3s, border-color 0.3s;
 }
 
-[data-theme="brutalist"] .group {
+[data-theme="brutalist"] .group,
+[data-theme="retro-amber"] .group {
     border-width: 3px;
 }
 
@@ -350,7 +814,8 @@ h3 {
     text-align: center;
 }
 
-[data-theme="brutalist"] .group h3 {
+[data-theme="brutalist"] .group h3,
+[data-theme="retro-amber"] .group h3 {
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -419,6 +884,14 @@ h3 {
     .collapsible-col {
         display: none;
     }
+    .gpu-stats-row {
+        gap: 6px 12px;
+    }
+    .core-cell {
+        width: 40px;
+        height: 38px;
+        font-size: 0.65em;
+    }
 }
 
 .mono {
@@ -449,7 +922,8 @@ h3 {
     font-weight: bold;
 }
 
-[data-theme="brutalist"] .status-badge {
+[data-theme="brutalist"] .status-badge,
+[data-theme="retro-amber"] .status-badge {
     border-radius: 0;
     border-width: 2px;
 }
@@ -465,16 +939,28 @@ h3 {
     border-color: #feb2b2;
 }
 
-[data-theme="dark"] .status-running {
-    background-color: #0d3d30;
-    color: #4ec9b0;
-    border-color: #2a6a55;
+[data-theme="dark"] .status-running,
+[data-theme="solarized"] .status-running,
+[data-theme="dracula"] .status-running,
+[data-theme="nord"] .status-running,
+[data-theme="nvidia"] .status-running,
+[data-theme="retro-amber"] .status-running,
+[data-theme="glass"] .status-running {
+    background-color: rgba(0, 144, 104, 0.15);
+    color: var(--status-connected);
+    border-color: var(--status-connected);
 }
 
-[data-theme="dark"] .status-stopped {
-    background-color: #3d1515;
-    color: #f48771;
-    border-color: #6b2a2a;
+[data-theme="dark"] .status-stopped,
+[data-theme="solarized"] .status-stopped,
+[data-theme="dracula"] .status-stopped,
+[data-theme="nord"] .status-stopped,
+[data-theme="nvidia"] .status-stopped,
+[data-theme="retro-amber"] .status-stopped,
+[data-theme="glass"] .status-stopped {
+    background-color: rgba(255, 50, 50, 0.15);
+    color: var(--status-error);
+    border-color: var(--status-error);
 }
 
 [data-theme="brutalist"] .status-running {
@@ -500,10 +986,11 @@ h3 {
     color: var(--text);
 }
 
-[data-theme="brutalist"] #nvidia-smi-crash-warning {
-    border: 3px solid #ff0055;
+[data-theme="brutalist"] #nvidia-smi-crash-warning,
+[data-theme="retro-amber"] #nvidia-smi-crash-warning {
+    border: 3px solid var(--status-error);
     border-radius: 0;
-    box-shadow: 4px 4px 0px #ff0055;
+    box-shadow: 4px 4px 0px var(--status-error);
 }
 
 #nvidia-smi-crash-warning>* {
@@ -532,13 +1019,15 @@ h3 {
     background-color: var(--btn-bg);
     cursor: pointer;
     font-size: 0.9em;
+    color: var(--text);
 }
 
 .actions button:hover {
     background-color: var(--btn-hover-bg);
 }
 
-[data-theme="brutalist"] .actions button {
+[data-theme="brutalist"] .actions button,
+[data-theme="retro-amber"] .actions button {
     border: 2px solid var(--border);
     border-radius: 0;
     box-shadow: 2px 2px 0px var(--border);
@@ -547,31 +1036,48 @@ h3 {
     font-size: 0.8em;
 }
 
-.start-btn {
-    color: #009068;
-}
-
-.stop-btn {
-    color: #c53030;
-}
-
-.restart-btn {
-    color: #ccaa12;
-}
-
-.logs-btn {
-    color: #6688cc;
-}
+.start-btn { color: #009068; }
+.stop-btn { color: #c53030; }
+.restart-btn { color: #ccaa12; }
+.logs-btn { color: #6688cc; }
 
 [data-theme="brutalist"] .start-btn { color: #00ff41; }
 [data-theme="brutalist"] .stop-btn { color: #ff0055; }
 [data-theme="brutalist"] .restart-btn { color: #ffaa00; }
 [data-theme="brutalist"] .logs-btn { color: #00ccff; }
 
-[data-theme="dark"] .start-btn { color: #4ec9b0; }
-[data-theme="dark"] .stop-btn { color: #f48771; }
-[data-theme="dark"] .restart-btn { color: #dbb844; }
-[data-theme="dark"] .logs-btn { color: #6688cc; }
+[data-theme="dark"] .start-btn,
+[data-theme="solarized"] .start-btn,
+[data-theme="dracula"] .start-btn,
+[data-theme="nord"] .start-btn,
+[data-theme="nvidia"] .start-btn,
+[data-theme="glass"] .start-btn { color: var(--status-connected); }
+
+[data-theme="dark"] .stop-btn,
+[data-theme="solarized"] .stop-btn,
+[data-theme="dracula"] .stop-btn,
+[data-theme="nord"] .stop-btn,
+[data-theme="nvidia"] .stop-btn,
+[data-theme="glass"] .stop-btn { color: var(--status-error); }
+
+[data-theme="dark"] .restart-btn,
+[data-theme="solarized"] .restart-btn,
+[data-theme="dracula"] .restart-btn,
+[data-theme="nord"] .restart-btn,
+[data-theme="nvidia"] .restart-btn,
+[data-theme="glass"] .restart-btn { color: var(--status-warning); }
+
+[data-theme="dark"] .logs-btn,
+[data-theme="solarized"] .logs-btn,
+[data-theme="dracula"] .logs-btn,
+[data-theme="nord"] .logs-btn,
+[data-theme="nvidia"] .logs-btn,
+[data-theme="glass"] .logs-btn { color: var(--link-color); }
+
+[data-theme="retro-amber"] .start-btn { color: #ffb000; }
+[data-theme="retro-amber"] .stop-btn { color: #ff4444; }
+[data-theme="retro-amber"] .restart-btn { color: #ff8800; }
+[data-theme="retro-amber"] .logs-btn { color: #ffcc44; }
 
 .actions button:disabled {
     opacity: 0.5;
@@ -590,7 +1096,8 @@ h3 {
     padding-top: 10px;
 }
 
-[data-theme="brutalist"] .docker-log-panel {
+[data-theme="brutalist"] .docker-log-panel,
+[data-theme="retro-amber"] .docker-log-panel {
     border-top: 3px solid var(--border);
 }
 
@@ -630,7 +1137,8 @@ h3 {
     background-color: var(--btn-hover-bg);
 }
 
-[data-theme="brutalist"] .log-close-btn {
+[data-theme="brutalist"] .log-close-btn,
+[data-theme="retro-amber"] .log-close-btn {
     border: 2px solid var(--border);
     border-radius: 0;
     box-shadow: 2px 2px 0px var(--border);
@@ -654,9 +1162,91 @@ h3 {
     word-break: break-all;
 }
 
-[data-theme="brutalist"] .docker-log-content {
+[data-theme="brutalist"] .docker-log-content,
+[data-theme="retro-amber"] .docker-log-content {
     border: 2px solid var(--border);
     border-radius: 0;
     background-color: #000000;
-    color: #00ff41;
+    color: var(--text);
+}
+
+/* ============================================================
+   Storage bars
+   ============================================================ */
+.storage-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 0;
+}
+
+.storage-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.storage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.85em;
+}
+
+.storage-mount {
+    font-weight: bold;
+    color: var(--text);
+    font-family: var(--font-mono);
+}
+
+.storage-detail {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+}
+
+.storage-bar-track {
+    height: 20px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+[data-theme="brutalist"] .storage-bar-track,
+[data-theme="retro-amber"] .storage-bar-track {
+    border: 2px solid var(--border);
+    border-radius: 0;
+}
+
+.storage-bar-fill {
+    height: 100%;
+    background-color: var(--accent);
+    transition: width 0.5s ease;
+    border-radius: 3px 0 0 3px;
+}
+
+.storage-bar-fill.warning {
+    background-color: var(--status-warning);
+}
+
+.storage-bar-fill.critical {
+    background-color: var(--status-error);
+}
+
+.storage-bar-pct {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75em;
+    font-family: var(--font-mono);
+    font-weight: bold;
+    color: var(--text);
+}
+
+.storage-device-label {
+    color: var(--text-muted);
+    font-size: 0.75em;
 }

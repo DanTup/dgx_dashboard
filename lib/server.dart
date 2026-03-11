@@ -11,6 +11,7 @@ import 'cpu.dart';
 import 'docker.dart';
 import 'gpu.dart';
 import 'memory.dart';
+import 'system.dart';
 import 'temps.dart';
 import 'utils.dart';
 
@@ -21,6 +22,7 @@ class Server {
   final MemoryMonitor _memoryMonitor;
   final TemperatureMonitor _temperatureMonitor;
   final DockerMonitor _dockerMonitor;
+  final SystemMonitor _systemMonitor;
 
   /// A stream of all metrics.
   ///
@@ -30,7 +32,8 @@ class Server {
     final cpu = _cpuMonitor.readMetrics();
     final temperature = _temperatureMonitor.readMetrics();
     final memory = _memoryMonitor.readMetrics();
-    return (gpu: gpu, cpu: cpu, temperature: temperature, memory: memory);
+    final system = _systemMonitor.readMetrics();
+    return (gpu: gpu, cpu: cpu, temperature: temperature, memory: memory, system: system);
   });
 
   var _latestDockerContainers = <DockerContainer>[];
@@ -69,6 +72,7 @@ class Server {
     this._memoryMonitor,
     this._temperatureMonitor,
     this._dockerMonitor,
+    this._systemMonitor,
   );
 
   /// Starts the server listening on [address]:[port].
@@ -370,8 +374,16 @@ class Server {
         if (ev.gpu case final gpu?)
           'gpu': {
             'usagePercent': gpu.usagePercent,
+            'memoryUsagePercent': gpu.memoryUsagePercent,
             'powerW': gpu.powerW,
+            'powerLimitW': gpu.powerLimitW,
             'temperatureC': gpu.temperatureC,
+            'vramUsedMB': gpu.vramUsedMB,
+            'vramTotalMB': gpu.vramTotalMB,
+            'clockGraphicsMHz': gpu.clockGraphicsMHz,
+            'clockMemoryMHz': gpu.clockMemoryMHz,
+            'performanceState': gpu.performanceState,
+            'throttleReasons': gpu.throttleReasons,
           },
         'cpu': {'usagePercent': ev.cpu.usagePercent},
         'temperature': {
@@ -381,6 +393,28 @@ class Server {
           'usedKB': ev.memory.usedKB,
           'availableKB': ev.memory.availableKB,
           'totalKB': ev.memory.totalKB,
+        },
+        'system': {
+          'loadAverage': ev.system.loadAverage,
+          'coreUsage': ev.system.coreUsage,
+          'cachedKB': ev.system.cachedKB,
+          'buffersKB': ev.system.buffersKB,
+          'swapTotalKB': ev.system.swapTotalKB,
+          'swapUsedKB': ev.system.swapUsedKB,
+          'diskReadBytesPerSec': ev.system.diskIO.readBytesPerSec,
+          'diskWriteBytesPerSec': ev.system.diskIO.writeBytesPerSec,
+          'netRxBytesPerSec': ev.system.netIO.rxBytesPerSec,
+          'netTxBytesPerSec': ev.system.netIO.txBytesPerSec,
+          'storage': ev.system.storage
+              .map((s) => {
+                    'device': s.device,
+                    'mountPoint': s.mountPoint,
+                    'fsType': s.fsType,
+                    'totalKB': s.totalKB,
+                    'usedKB': s.usedKB,
+                    'availableKB': s.availableKB,
+                  })
+              .toList(),
         },
         'docker': _latestDockerContainers
             .map(

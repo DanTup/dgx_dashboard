@@ -24,6 +24,9 @@
 <!-- Pixel rain canvas (brutalist theme only) -->
 <canvas id="pixel-rain" class="pixel-rain-canvas"></canvas>
 
+<!-- Glass theme animated gradient background -->
+<div class="glass-gradient-bg"></div>
+
 <!-- Loading overlay -->
 <div id="loading-overlay" class="loading-overlay">
     <div class="loading-content">
@@ -37,13 +40,24 @@
     <div id="header">
         <h1>DGX Spark Dashboard</h1>
         <span id="status">Connecting...</span>
-        <button id="theme-toggle" class="theme-toggle" title="Toggle theme">light</button>
-        <span id="links">
-            <a href="https://github.com/DanTup/dgx_dashboard">GitHub</a>
-            <a href="https://docs.nvidia.com/dgx/dgx-spark/">Docs</a>
-            <a href="https://forums.developer.nvidia.com/c/accelerated-computing/dgx-spark-gb10">Forums</a>
-            <a href="https://build.nvidia.com/spark">Resources</a>
-        </span>
+        <div class="header-controls">
+            <div class="theme-controls">
+                <select id="theme-select" class="theme-select" title="Select theme"></select>
+                <div class="accent-picker">
+                    <label for="accent-color" class="accent-label">Accent</label>
+                    <input type="color" id="accent-color" class="accent-input" value="#4ec9b0">
+                </div>
+            </div>
+            <div class="links-dropdown">
+                <button id="links-toggle" class="links-toggle-btn" title="Links">Links</button>
+                <div id="links-menu" class="links-menu">
+                    <a href="https://github.com/DanTup/dgx_dashboard">GitHub</a>
+                    <a href="https://docs.nvidia.com/dgx/dgx-spark/">Docs</a>
+                    <a href="https://forums.developer.nvidia.com/c/accelerated-computing/dgx-spark-gb10">Forums</a>
+                    <a href="https://build.nvidia.com/spark">Resources</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="nvidia-smi-crash-warning" style="display: none">
@@ -57,7 +71,42 @@
     </div>
 
     <div class="graphs">
-         <div class="group full">
+        <!-- GPU Info Bar -->
+        <div class="group full" id="gpu-info-bar">
+            <div class="gpu-stats-row">
+                <div class="gpu-stat">
+                    <span class="gpu-stat-label">Performance State</span>
+                    <span class="gpu-stat-value" id="gpu-pstate">--</span>
+                </div>
+                <div class="gpu-stat">
+                    <span class="gpu-stat-label">GPU Clock</span>
+                    <span class="gpu-stat-value" id="gpu-clock-gfx">-- MHz</span>
+                </div>
+                <div class="gpu-stat">
+                    <span class="gpu-stat-label">Mem Clock</span>
+                    <span class="gpu-stat-value" id="gpu-clock-mem">-- MHz</span>
+                </div>
+                <div class="gpu-stat">
+                    <span class="gpu-stat-label">Power</span>
+                    <span class="gpu-stat-value" id="gpu-power-stat">-- / -- W</span>
+                </div>
+                <div class="gpu-stat">
+                    <span class="gpu-stat-label">VRAM</span>
+                    <span class="gpu-stat-value" id="gpu-vram-stat">-- / -- MB</span>
+                </div>
+                <div class="gpu-stat">
+                    <span class="gpu-stat-label">Load Avg</span>
+                    <span class="gpu-stat-value" id="load-avg-stat">--</span>
+                </div>
+                <div class="gpu-stat" id="throttle-stat" style="display:none">
+                    <span class="gpu-stat-label">Throttle</span>
+                    <span class="gpu-stat-value throttle-warning" id="gpu-throttle">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory row -->
+        <div class="group full">
             <h3>Memory Usage</h3>
             <div class="subgraphs">
                 <div class="subgroup half">
@@ -68,15 +117,40 @@
                 </div>
             </div>
         </div>
+
+        <!-- Usage + Temps row -->
         <div class="group half">
             <h3>GPU & CPU Usage</h3>
             <div class="chart-container"><canvas id="usage-chart"></canvas></div>
-            <div id="gpu-power-label" class="power-label">GPU Power: 0 W</div>
         </div>
         <div class="group half">
             <h3>Temperatures</h3>
             <div class="chart-container"><canvas id="temp-chart"></canvas></div>
         </div>
+
+        <!-- Per-core CPU heatmap -->
+        <div class="group full" id="core-heatmap-section">
+            <h3>CPU Cores</h3>
+            <div id="core-heatmap" class="core-heatmap"></div>
+        </div>
+
+        <!-- Disk & Network I/O row -->
+        <div class="group half">
+            <h3>Disk I/O</h3>
+            <div class="chart-container"><canvas id="disk-chart"></canvas></div>
+        </div>
+        <div class="group half">
+            <h3>Network I/O</h3>
+            <div class="chart-container"><canvas id="net-chart"></canvas></div>
+        </div>
+
+        <!-- Storage -->
+        <div class="group full" id="storage-section" style="display: none;">
+            <h3>Storage</h3>
+            <div id="storage-bars" class="storage-bars"></div>
+        </div>
+
+        <!-- Docker -->
         <div class="group full" id="docker-section" style="display: none;">
             <h3>Docker Containers</h3>
             <table class="docker-table">

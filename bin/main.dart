@@ -7,6 +7,7 @@ import 'package:dgx_dashboard/docker.dart';
 import 'package:dgx_dashboard/gpu.dart';
 import 'package:dgx_dashboard/memory.dart';
 import 'package:dgx_dashboard/server.dart';
+import 'package:dgx_dashboard/system.dart';
 import 'package:dgx_dashboard/temps.dart';
 import 'package:dgx_dashboard/utils.dart';
 
@@ -21,6 +22,7 @@ Future<void> main(List<String> args) async {
     MemoryMonitor(),
     TemperatureMonitor(),
     DockerMonitor(),
+    SystemMonitor(),
   );
   await server.start(InternetAddress.anyIPv4, 8080);
 }
