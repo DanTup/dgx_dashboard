@@ -5,26 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DGX Dashboard</title>
     <link rel="icon" href="data:,">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="main.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" 
-            integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"
+            integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ"
             crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js" 
-            integrity="sha384-3N9GHhCtN3CQef6tNfqgZlv7sQLYIkcChN+uaTZ7xVdzKYp/SjBNPxa92+hM7EAY" 
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"
+            integrity="sha384-3N9GHhCtN3CQef6tNfqgZlv7sQLYIkcChN+uaTZ7xVdzKYp/SjBNPxa92+hM7EAY"
             crossorigin="anonymous"></script>
+    <script>
+        // Apply saved theme immediately to prevent flash.
+        const saved = localStorage.getItem('dgx-theme');
+        if (saved) document.documentElement.setAttribute('data-theme', saved);
+    </script>
 </head>
 <body>
+
+<!-- Pixel rain canvas (brutalist theme only) -->
+<canvas id="pixel-rain" class="pixel-rain-canvas"></canvas>
+
+<!-- Glass theme animated gradient background -->
+<div class="glass-gradient-bg"></div>
+
+<!-- Loading overlay -->
+<div id="loading-overlay" class="loading-overlay">
+    <div class="loading-content">
+        <div class="loading-bar"></div>
+        <div class="loading-text">Connecting to DGX...</div>
+    </div>
+</div>
+
 <div id="progress-bar"></div>
 <div class="page">
     <div id="header">
         <h1>DGX Spark Dashboard</h1>
         <span id="status">Connecting...</span>
-        <span id="links">
-            <a href="https://github.com/DanTup/dgx_dashboard">GitHub</a>
-            <a href="https://docs.nvidia.com/dgx/dgx-spark/">Docs</a>
-            <a href="https://forums.developer.nvidia.com/c/accelerated-computing/dgx-spark-gb10">Forums</a>
-            <a href="https://build.nvidia.com/spark">Resources</a>
-        </span>
+        <div class="header-controls">
+            <div class="theme-controls">
+                <select id="theme-select" class="theme-select" title="Select theme"></select>
+                <div class="accent-picker">
+                    <label for="accent-color" class="accent-label">Accent</label>
+                    <input type="color" id="accent-color" class="accent-input" value="#4ec9b0">
+                </div>
+            </div>
+            <div class="links-dropdown">
+                <button id="links-toggle" class="links-toggle-btn" title="Links">Links</button>
+                <div id="links-menu" class="links-menu">
+                    <a href="https://github.com/DanTup/dgx_dashboard">GitHub</a>
+                    <a href="https://docs.nvidia.com/dgx/dgx-spark/">Docs</a>
+                    <a href="https://forums.developer.nvidia.com/c/accelerated-computing/dgx-spark-gb10">Forums</a>
+                    <a href="https://build.nvidia.com/spark">Resources</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="nvidia-smi-crash-warning" style="display: none">
@@ -36,9 +69,44 @@
             and <a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/troubleshooting.html#containers-losing-access-to-gpus-with-error-failed-to-initialize-nvml-unknown-error">docs.nvidia.com/.../troubleshooting.html</a> for more info.
         </p>
     </div>
-    
+
     <div class="graphs">
-         <div class="group full">
+        <!-- GPU Info Bar -->
+        <div class="group full" id="gpu-info-bar">
+            <div class="gpu-stats-row">
+                <div class="gpu-stat">
+                    <span class="gpu-stat-label">Performance State</span>
+                    <span class="gpu-stat-value" id="gpu-pstate">--</span>
+                </div>
+                <div class="gpu-stat">
+                    <span class="gpu-stat-label">GPU Clock</span>
+                    <span class="gpu-stat-value" id="gpu-clock-gfx">-- MHz</span>
+                </div>
+                <div class="gpu-stat">
+                    <span class="gpu-stat-label">Mem Clock</span>
+                    <span class="gpu-stat-value" id="gpu-clock-mem">-- MHz</span>
+                </div>
+                <div class="gpu-stat">
+                    <span class="gpu-stat-label">Power</span>
+                    <span class="gpu-stat-value" id="gpu-power-stat">-- / -- W</span>
+                </div>
+                <div class="gpu-stat">
+                    <span class="gpu-stat-label">VRAM</span>
+                    <span class="gpu-stat-value" id="gpu-vram-stat">-- / -- MB</span>
+                </div>
+                <div class="gpu-stat">
+                    <span class="gpu-stat-label">Load Avg</span>
+                    <span class="gpu-stat-value" id="load-avg-stat">--</span>
+                </div>
+                <div class="gpu-stat" id="throttle-stat" style="display:none">
+                    <span class="gpu-stat-label">Throttle</span>
+                    <span class="gpu-stat-value throttle-warning" id="gpu-throttle">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory row -->
+        <div class="group full">
             <h3>Memory Usage</h3>
             <div class="subgraphs">
                 <div class="subgroup half">
@@ -49,15 +117,40 @@
                 </div>
             </div>
         </div>
+
+        <!-- Usage + Temps row -->
         <div class="group half">
             <h3>GPU & CPU Usage</h3>
             <div class="chart-container"><canvas id="usage-chart"></canvas></div>
-            <div id="gpu-power-label" class="power-label">GPU Power: 0 W</div>
         </div>
         <div class="group half">
             <h3>Temperatures</h3>
             <div class="chart-container"><canvas id="temp-chart"></canvas></div>
         </div>
+
+        <!-- Per-core CPU heatmap -->
+        <div class="group full" id="core-heatmap-section">
+            <h3>CPU Cores</h3>
+            <div id="core-heatmap" class="core-heatmap"></div>
+        </div>
+
+        <!-- Disk & Network I/O row -->
+        <div class="group half">
+            <h3>Disk I/O</h3>
+            <div class="chart-container"><canvas id="disk-chart"></canvas></div>
+        </div>
+        <div class="group half">
+            <h3>Network I/O</h3>
+            <div class="chart-container"><canvas id="net-chart"></canvas></div>
+        </div>
+
+        <!-- Storage -->
+        <div class="group full" id="storage-section" style="display: none;">
+            <h3>Storage</h3>
+            <div id="storage-bars" class="storage-bars"></div>
+        </div>
+
+        <!-- Docker -->
         <div class="group full" id="docker-section" style="display: none;">
             <h3>Docker Containers</h3>
             <table class="docker-table">
@@ -68,6 +161,9 @@
                         <th>Status</th>
                         <th>CPU</th>
                         <th>Memory</th>
+                        <th class="collapsible-col">Net I/O</th>
+                        <th class="collapsible-col">Block I/O</th>
+                        <th class="collapsible-col">PIDs</th>
                         <th>Ports</th>
                     </tr>
                 </thead>
@@ -79,6 +175,7 @@
                         <button class="start-btn">Start</button>
                         <button class="stop-btn">Stop</button>
                         <button class="restart-btn">Restart</button>
+                        <button class="logs-btn">Logs</button>
                     </td>
                     <td>
                         <span class="name"></span>
@@ -87,9 +184,26 @@
                     <td><span class="status-badge"></span> <span class="status detail"></span></td>
                     <td class="cpu mono"></td>
                     <td class="memory mono"></td>
+                    <td class="netio mono collapsible-col"></td>
+                    <td class="blockio mono collapsible-col"></td>
+                    <td class="pids mono collapsible-col"></td>
                     <td class="ports mono"></td>
                 </tr>
             </template>
+
+            <!-- Docker log panel -->
+            <div id="docker-log-panel" class="docker-log-panel" style="display: none;">
+                <div class="docker-log-header">
+                    <span id="docker-log-title">Logs: </span>
+                    <div class="docker-log-controls">
+                        <label class="scroll-lock-label">
+                            <input type="checkbox" id="docker-log-scroll-lock" checked> Auto-scroll
+                        </label>
+                        <button id="docker-log-close" class="log-close-btn">Close</button>
+                    </div>
+                </div>
+                <pre id="docker-log-content" class="docker-log-content"></pre>
+            </div>
         </div>
     </div>
 </div>

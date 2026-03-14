@@ -11,6 +11,7 @@ import 'cpu.dart';
 import 'docker.dart';
 import 'gpu.dart';
 import 'memory.dart';
+import 'system.dart';
 import 'temps.dart';
 import 'utils.dart';
 
@@ -21,6 +22,7 @@ class Server {
   final MemoryMonitor _memoryMonitor;
   final TemperatureMonitor _temperatureMonitor;
   final DockerMonitor _dockerMonitor;
+  final SystemMonitor _systemMonitor;
 
   /// A stream of all metrics.
   ///
@@ -30,7 +32,8 @@ class Server {
     final cpu = _cpuMonitor.readMetrics();
     final temperature = _temperatureMonitor.readMetrics();
     final memory = _memoryMonitor.readMetrics();
-    return (gpu: gpu, cpu: cpu, temperature: temperature, memory: memory);
+    final system = _systemMonitor.readMetrics();
+    return (gpu: gpu, cpu: cpu, temperature: temperature, memory: memory, system: system);
   });
 
   var _latestDockerContainers = <DockerContainer>[];
@@ -46,7 +49,11 @@ class Server {
 
   final Set<WebSocket> _connectedClients = {};
 
+  /// Active log stream processes per client (one stream per client max).
+  final Map<WebSocket, Process> _logStreams = {};
+
   StreamSubscription<void>? _metricsSubscription;
+  Timer? _clientCleanupTimer;
 
   /// A timer that pauses metrics gathering and clears the data buffer a few
   /// seconds after the last client disconnects. This allows us to keep tracking
@@ -65,6 +72,7 @@ class Server {
     this._memoryMonitor,
     this._temperatureMonitor,
     this._dockerMonitor,
+    this._systemMonitor,
   );
 
   /// Starts the server listening on [address]:[port].
@@ -75,7 +83,29 @@ class Server {
         : address.host;
     info('Server listening on http://$clickableHost:$port');
 
+    // Periodically remove dead WebSocket clients.
+    _clientCleanupTimer = Timer.periodic(
+      const Duration(seconds: 60),
+      (_) => _removeDeadClients(),
+    );
+
     await server.map(_handleRequest).toList();
+  }
+
+  /// Removes WebSocket clients that have disconnected uncleanly.
+  void _removeDeadClients() {
+    final dead = _connectedClients
+        .where((ws) => ws.closeCode != null || ws.readyState != WebSocket.open)
+        .toList();
+    if (dead.isNotEmpty) {
+      for (final ws in dead) {
+        _connectedClients.remove(ws);
+      }
+      info('Removed ${dead.length} dead WebSocket client(s) (remaining: ${_connectedClients.length})');
+      if (_connectedClients.isEmpty) {
+        _suspendTimer.reset();
+      }
+    }
   }
 
   void _fetchDockerContainers(bool wasTriggedByCommand) {
@@ -177,12 +207,30 @@ class Server {
           }) {
             await _dockerMonitor.restartContainer(id);
             _fetchDockerContainers(true);
+          } else if (message case {
+            'command': 'docker-logs',
+            'id': final String id,
+          }) {
+            final logs = await _dockerMonitor.getLogs(id);
+            ws.add(jsonEncode({
+              'type': 'docker-logs',
+              'id': id,
+              'logs': logs,
+            }));
+          } else if (message case {
+            'command': 'docker-logs-stream',
+            'id': final String id,
+          }) {
+            await _startLogStream(ws, id);
+          } else if (message case {'command': 'docker-logs-stop'}) {
+            _stopLogStream(ws);
           }
         } catch (e) {
           warning('Error handling message:\n$data:\n$e');
         }
       },
       onDone: () {
+        _stopLogStream(ws);
         if (_connectedClients.remove(ws)) {
           fine(
             'WebSocket client disconnected (count: ${_connectedClients.length})',
@@ -191,6 +239,53 @@ class Server {
         }
       },
     );
+  }
+
+  Future<void> _startLogStream(WebSocket ws, String id) async {
+    // Stop any existing stream for this client.
+    _stopLogStream(ws);
+
+    final process = await _dockerMonitor.startLogStream(id);
+    if (process == null) {
+      ws.add(jsonEncode({
+        'type': 'docker-log-line',
+        'id': id,
+        'line': 'Failed to start log stream',
+      }));
+      return;
+    }
+
+    _logStreams[ws] = process;
+
+    void handleLine(String line) {
+      if (_logStreams[ws] == process) {
+        ws.add(jsonEncode({
+          'type': 'docker-log-line',
+          'id': id,
+          'line': line,
+        }));
+      }
+    }
+
+    process.stdout
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen(handleLine);
+    process.stderr
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen(handleLine);
+
+    unawaited(process.exitCode.then((_) {
+      if (_logStreams[ws] == process) {
+        _logStreams.remove(ws);
+      }
+    }));
+  }
+
+  void _stopLogStream(WebSocket ws) {
+    final process = _logStreams.remove(ws);
+    process?.kill();
   }
 
   void _pauseStreamIfNoClients() {
@@ -279,8 +374,16 @@ class Server {
         if (ev.gpu case final gpu?)
           'gpu': {
             'usagePercent': gpu.usagePercent,
+            'memoryUsagePercent': gpu.memoryUsagePercent,
             'powerW': gpu.powerW,
+            'powerLimitW': gpu.powerLimitW,
             'temperatureC': gpu.temperatureC,
+            'vramUsedMB': gpu.vramUsedMB,
+            'vramTotalMB': gpu.vramTotalMB,
+            'clockGraphicsMHz': gpu.clockGraphicsMHz,
+            'clockMemoryMHz': gpu.clockMemoryMHz,
+            'performanceState': gpu.performanceState,
+            'throttleReasons': gpu.throttleReasons,
           },
         'cpu': {'usagePercent': ev.cpu.usagePercent},
         'temperature': {
@@ -290,6 +393,28 @@ class Server {
           'usedKB': ev.memory.usedKB,
           'availableKB': ev.memory.availableKB,
           'totalKB': ev.memory.totalKB,
+        },
+        'system': {
+          'loadAverage': ev.system.loadAverage,
+          'coreUsage': ev.system.coreUsage,
+          'cachedKB': ev.system.cachedKB,
+          'buffersKB': ev.system.buffersKB,
+          'swapTotalKB': ev.system.swapTotalKB,
+          'swapUsedKB': ev.system.swapUsedKB,
+          'diskReadBytesPerSec': ev.system.diskIO.readBytesPerSec,
+          'diskWriteBytesPerSec': ev.system.diskIO.writeBytesPerSec,
+          'netRxBytesPerSec': ev.system.netIO.rxBytesPerSec,
+          'netTxBytesPerSec': ev.system.netIO.txBytesPerSec,
+          'storage': ev.system.storage
+              .map((s) => {
+                    'device': s.device,
+                    'mountPoint': s.mountPoint,
+                    'fsType': s.fsType,
+                    'totalKB': s.totalKB,
+                    'usedKB': s.usedKB,
+                    'availableKB': s.availableKB,
+                  })
+              .toList(),
         },
         'docker': _latestDockerContainers
             .map(
@@ -303,6 +428,9 @@ class Server {
                 'names': c.names,
                 'cpu': c.cpu,
                 'memory': c.memory,
+                'netIO': c.netIO,
+                'blockIO': c.blockIO,
+                'pids': c.pids,
               },
             )
             .toList(),
@@ -313,7 +441,7 @@ class Server {
       // Keep a buffer of events to send to new clients.
       _clientMetricsBuffer.add(message);
       if (_clientMetricsBuffer.length > keepEvents) {
-        _clientMetricsBuffer.length = keepEvents;
+        _clientMetricsBuffer.removeAt(0);
       }
 
       // Send to all connected clients.

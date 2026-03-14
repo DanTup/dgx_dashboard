@@ -13,6 +13,9 @@ typedef DockerContainer = ({
   String names,
   String cpu,
   String memory,
+  String netIO,
+  String blockIO,
+  String pids,
 });
 
 /// Monitors Docker containers using the `docker` command-line tool.
@@ -29,7 +32,13 @@ class DockerMonitor {
         '{{.ID}}|{{.Image}}|{{.Command}}|{{.CreatedAt}}|{{.Status}}|{{.Ports}}|{{.Names}}',
       ];
       fine('Executing process: docker ${listArgs.join(' ')}');
-      final result = await Process.run('docker', listArgs);
+      final result = await Process.run('docker', listArgs).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          warning('docker container ls timed out after 15s');
+          return ProcessResult(0, -1, '', 'timeout');
+        },
+      );
       fine('Process docker container ls exited with code ${result.exitCode}');
 
       if (result.exitCode != 0) {
@@ -50,21 +59,38 @@ class DockerMonitor {
         '--no-stream',
         '--no-trunc',
         '--format',
-        '{{.ID}}|{{.CPUPerc}}|{{.MemUsage}}',
+        '{{.ID}}|{{.CPUPerc}}|{{.MemUsage}}|{{.NetIO}}|{{.BlockIO}}|{{.PIDs}}',
       ];
       fine('Executing process: docker ${statsArgs.join(' ')}');
-      final statsResult = await Process.run('docker', statsArgs);
+      final statsResult = await Process.run(
+        'docker',
+        statsArgs,
+        stdoutEncoding: systemEncoding,
+        stderrEncoding: systemEncoding,
+      ).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          warning('docker stats timed out after 15s');
+          return ProcessResult(0, -1, '', 'timeout');
+        },
+      );
       fine('Process docker stats exited with code ${statsResult.exitCode}');
 
-      final statsMap = <String, ({String cpu, String memory})>{};
+      final statsMap = <String, ({String cpu, String memory, String netIO, String blockIO, String pids})>{};
       if (statsResult.exitCode == 0) {
         final statsLines = statsResult.stdout.toString().trim().split('\n');
         for (final line in statsLines) {
           final parts = line.split('|');
-          if (parts.length != 3) continue;
+          if (parts.length != 6) continue;
 
           final id = parts[0];
-          statsMap[id] = (cpu: parts[1], memory: parts[2]);
+          statsMap[id] = (
+            cpu: parts[1],
+            memory: parts[2],
+            netIO: parts[3],
+            blockIO: parts[4],
+            pids: parts[5],
+          );
         }
       } else {
         warning('docker stats failed with code ${statsResult.exitCode}');
@@ -87,12 +113,60 @@ class DockerMonitor {
           names: parts[6],
           cpu: stats?.cpu ?? '--',
           memory: stats?.memory ?? '--',
+          netIO: stats?.netIO ?? '--',
+          blockIO: stats?.blockIO ?? '--',
+          pids: stats?.pids ?? '--',
         ));
       }
       return containers;
     } catch (e) {
       error('Failed to query docker containers: $e');
       return [];
+    }
+  }
+
+  /// Returns the last [tail] lines of logs for the container with [id].
+  Future<String> getLogs(String id, {int tail = 100}) async {
+    if (!RegExp(r'^[a-zA-Z0-9_.-]{1,255}$').hasMatch(id)) {
+      return 'Invalid container ID';
+    }
+    try {
+      final args = ['logs', '--tail=$tail', '--timestamps', id];
+      fine('Executing process: docker ${args.join(' ')}');
+      final result = await Process.run('docker', args).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          warning('docker logs timed out after 15s');
+          return ProcessResult(0, -1, '', 'timeout');
+        },
+      );
+      if (result.exitCode != 0) {
+        return 'Error fetching logs (exit code ${result.exitCode})';
+      }
+      // Docker sends some log output to stderr (e.g., tty-attached containers).
+      final stdout = result.stdout.toString();
+      final stderr = result.stderr.toString();
+      return stdout.isNotEmpty ? stdout : stderr;
+    } catch (e) {
+      error('Failed to get docker logs for $id: $e');
+      return 'Failed to get logs: $e';
+    }
+  }
+
+  /// Starts streaming logs for the container with [id].
+  ///
+  /// Returns the [Process] so the caller can kill it to stop streaming.
+  Future<Process?> startLogStream(String id) async {
+    if (!RegExp(r'^[a-zA-Z0-9_.-]{1,255}$').hasMatch(id)) {
+      return null;
+    }
+    try {
+      final args = ['logs', '-f', '--tail=100', '--timestamps', id];
+      fine('Executing process: docker ${args.join(' ')}');
+      return await Process.start('docker', args);
+    } catch (e) {
+      error('Failed to start docker log stream for $id: $e');
+      return null;
     }
   }
 

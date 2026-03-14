@@ -6,7 +6,19 @@ import 'constants.dart';
 import 'utils.dart';
 
 /// Represents GPU usage metrics.
-typedef GpuMetrics = ({int usagePercent, int temperatureC, double powerW});
+typedef GpuMetrics = ({
+  int usagePercent,
+  int memoryUsagePercent,
+  int temperatureC,
+  double powerW,
+  double powerLimitW,
+  int vramUsedMB,
+  int vramTotalMB,
+  int clockGraphicsMHz,
+  int clockMemoryMHz,
+  String performanceState,
+  String throttleReasons,
+});
 
 /// Monitors GPU metrics using `nvidia-smi`.
 ///
@@ -20,6 +32,10 @@ class GpuMonitor {
 
   /// The number of restarts of nvidia-smi remaining.
   var _remainingRestarts = maxNvidiaSmiRestarts;
+
+  /// Consecutive successful metric emissions. Resets [_remainingRestarts] after
+  /// [consecutiveSuccessesBeforeReset] successes.
+  var _consecutiveSuccesses = 0;
 
   /// Creates a new GPU monitor.
   ///
@@ -51,6 +67,7 @@ class GpuMonitor {
   bool get _isRunning => _nvidiaSmiProcess != null;
 
   void _handleProcessDone() {
+    _consecutiveSuccesses = 0;
     // If `nvidia-smi` quit but consumer still wants data, attempt restart.
     if (_metricsController.hasListener && !_metricsController.isPaused) {
       _stop();
@@ -70,17 +87,33 @@ class GpuMonitor {
   void _parseAndEmitMetrics(String line) {
     fine('nvidia-smi metrics line: $line');
     final parts = line.split(',').map((s) => s.trim()).toList();
-    if (parts.length < 3) {
-      warning('unexpected nvidia-smi output: $line');
+    if (parts.length < 11) {
+      warning('unexpected nvidia-smi output (${parts.length} fields): $line');
       return;
     }
 
     try {
       _metricsController.add((
-        usagePercent: int.parse(parts[0]),
-        temperatureC: int.parse(parts[1]),
-        powerW: double.parse(parts[2]),
+        usagePercent: int.tryParse(parts[0]) ?? 0,
+        memoryUsagePercent: int.tryParse(parts[1]) ?? 0,
+        temperatureC: int.tryParse(parts[2]) ?? 0,
+        powerW: double.tryParse(parts[3]) ?? 0.0,
+        powerLimitW: double.tryParse(parts[4]) ?? 0.0,
+        vramUsedMB: int.tryParse(parts[5]) ?? 0,
+        vramTotalMB: int.tryParse(parts[6]) ?? 0,
+        clockGraphicsMHz: int.tryParse(parts[7]) ?? 0,
+        clockMemoryMHz: int.tryParse(parts[8]) ?? 0,
+        performanceState: parts[9],
+        throttleReasons: parts[10],
       ));
+
+      // Reset restart budget after sustained success.
+      if (++_consecutiveSuccesses >= consecutiveSuccessesBeforeReset &&
+          _remainingRestarts < maxNvidiaSmiRestarts) {
+        _remainingRestarts = maxNvidiaSmiRestarts;
+        info('nvidia-smi restart counter reset after $_consecutiveSuccesses consecutive successes');
+        _consecutiveSuccesses = 0;
+      }
     } catch (_) {
       // Ignore malformed lines.
       warning('unparsable nvidia-smi output: $line');
@@ -96,7 +129,7 @@ class GpuMonitor {
     try {
       // Use the shared poll interval constant.
       final args = [
-        '--query-gpu=utilization.gpu,temperature.gpu,power.draw',
+        '--query-gpu=utilization.gpu,utilization.memory,temperature.gpu,power.draw,power.limit,memory.used,memory.total,clocks.current.graphics,clocks.current.memory,pstate,clocks_event_reasons.active',
         '--format=csv,noheader,nounits',
         '-l=$pollSeconds',
       ];
