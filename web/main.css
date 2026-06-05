@@ -1,5 +1,44 @@
 :root {
 	--progress-bar-height: 1px;
+	--bg-color: #ffffff;
+	--text-color: #000000;
+	--border-color: #ccc;
+	--link-color: #999;
+	--table-th-bg: #f9f9f9;
+	--table-hover-bg: #f0f0f9;
+	--table-border: #eee;
+	--mono-color: #555;
+	--btn-bg: #fff;
+	--btn-hover-bg: #f0f0f0;
+	--btn-disabled-bg: #f5f5f5;
+	--btn-disabled-border: #ddd;
+}
+
+[data-theme="dark"] {
+	--bg-color: #121212;
+	--text-color: #e0e0e0;
+	--border-color: #444;
+	--link-color: #aaa;
+	--table-th-bg: #1e1e1e;
+	--table-hover-bg: #2a2a2a;
+	--table-border: #333;
+	--mono-color: #aaa;
+	--btn-bg: #222;
+	--btn-hover-bg: #333;
+	--btn-disabled-bg: #1a1a1a;
+	--btn-disabled-border: #444;
+}
+
+[data-theme="dark"] .status-running {
+	background-color: rgba(0, 144, 104, 0.2);
+	color: #4ec9b0;
+	border-color: #009068;
+}
+
+[data-theme="dark"] .status-stopped {
+	background-color: rgba(197, 48, 48, 0.2);
+	color: #fc8181;
+	border-color: #c53030;
 }
 
 * {
@@ -8,6 +47,9 @@
 
 body {
 	margin: 0;
+	background-color: var(--bg-color);
+	color: var(--text-color);
+	transition: background-color 0.3s, color 0.3s;
 }
 
 /* Progress bar at top indicating time until next data refresh */
@@ -44,11 +86,17 @@ h1 {
 	bottom: 10px;
 }
 
-#links a {
-	color: #999;
+#links a, #theme-toggle {
+	color: var(--link-color);
 	display: inline-block;
 	margin: 0 5px;
 	font-size: 0.9em;
+	text-decoration: none;
+	transition: color 0.3s;
+}
+
+#links a:hover, #theme-toggle:hover {
+	color: var(--text-color);
 }
 
 .graphs {
@@ -58,9 +106,10 @@ h1 {
 }
 
 .group {
-	border: 1px solid #ccc;
+	border: 1px solid var(--border-color);
 	padding: 10px;
 	border-radius: 8px;
+	transition: border-color 0.3s;
 }
 
 .group.full {
@@ -113,16 +162,16 @@ h1 {
 .docker-table td {
 	text-align: left;
 	padding: 8px;
-	border-bottom: 1px solid #eee;
+	border-bottom: 1px solid var(--table-border);
 }
 
 .docker-table th {
-	background-color: #f9f9f9;
+	background-color: var(--table-th-bg);
 	font-weight: bold;
 }
 
 .docker-table tr:hover {
-	background-color: #f0f0f9;
+	background-color: var(--table-hover-bg);
 }
 
 .docker-table tr:last-child td {
@@ -131,7 +180,7 @@ h1 {
 
 .mono {
 	font-family: monospace;
-	color: #555;
+	color: var(--mono-color);
 }
 
 .status-badge {
@@ -189,15 +238,17 @@ h1 {
 .actions button {
 	min-width: 80px;
 	padding: 4px 8px;
-	border: 1px solid #ccc;
+	border: 1px solid var(--border-color);
 	border-radius: 4px;
-	background-color: #fff;
+	background-color: var(--btn-bg);
+	color: var(--text-color);
 	cursor: pointer;
 	font-size: 0.9em;
+	transition: background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .actions button:hover {
-	background-color: #f0f0f0;
+	background-color: var(--btn-hover-bg);
 }
 
 .start-btn {
@@ -215,7 +266,7 @@ h1 {
 .actions button:disabled {
 	opacity: 0.5;
 	cursor: default;
-	background-color: #f5f5f5;
-	border-color: #ddd;
-	color: #999;
+	background-color: var(--btn-disabled-bg);
+	border-color: var(--btn-disabled-border);
+	color: var(--link-color);
 }
