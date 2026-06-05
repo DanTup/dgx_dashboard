@@ -124,8 +124,11 @@ function updateGauge(chart, value, maxValue) {
 		value = maxValue;
 	}
 
+	const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+	const emptyColor = isDark ? 'rgb(60, 60, 60)' : 'rgb(230, 230, 230)';
+
 	chart.data.datasets[0].data = [value, maxValue - value];
-	chart.data.datasets[0].backgroundColor = [color, 'rgb(230, 230, 230)'];
+	chart.data.datasets[0].backgroundColor = [color, emptyColor];
 	chart.options.plugins.annotation.annotations.usedLabel.content = `${value.toFixed(1)}GB`;
 	chart.options.plugins.annotation.annotations.totalLabel.content = `/${maxValue}GB`;
 	chart.update('none');
@@ -474,8 +477,60 @@ function connect() {
 	};
 }
 
+function initTheme() {
+	const themeToggleBtn = document.getElementById('theme-toggle');
+	const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+	function setTheme(theme) {
+		document.documentElement.setAttribute('data-theme', theme);
+		localStorage.setItem('theme', theme);
+		if (themeToggleBtn) {
+			const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
+			const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
+			themeToggleBtn.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
+		}
+
+		// Update Chart.js defaults
+		const isDark = theme === 'dark';
+		Chart.defaults.color = isDark ? '#e0e0e0' : '#666';
+		Chart.defaults.borderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+		if (usageChart) usageChart.update('none');
+		if (tempChart) tempChart.update('none');
+		if (memoryLineChart) memoryLineChart.update('none');
+
+		if (memoryGauge && memoryGauge.data && memoryGauge.data.datasets.length > 0) {
+			const emptyColor = isDark ? 'rgb(60, 60, 60)' : 'rgb(230, 230, 230)';
+			const dataLength = memoryGauge.data.datasets[0].backgroundColor.length;
+			memoryGauge.data.datasets[0].backgroundColor[dataLength - 1] = emptyColor;
+			if (memoryGauge.options.plugins.annotation.annotations.usedLabel) {
+				memoryGauge.options.plugins.annotation.annotations.usedLabel.color = isDark ? '#fff' : 'black';
+				memoryGauge.options.plugins.annotation.annotations.totalLabel.color = isDark ? '#aaa' : 'gray';
+			}
+			memoryGauge.update('none');
+		}
+	}
+
+	const currentTheme = localStorage.getItem('theme') || (prefersDarkScheme.matches ? 'dark' : 'light');
+	setTheme(currentTheme);
+
+	if (themeToggleBtn) {
+		themeToggleBtn.addEventListener('click', () => {
+			const currentTheme = document.documentElement.getAttribute('data-theme');
+			setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+		});
+	}
+
+	prefersDarkScheme.addEventListener('change', (e) => {
+		if (!localStorage.getItem('theme')) {
+			setTheme(e.matches ? 'dark' : 'light');
+		}
+	});
+}
+
 // Initialize charts when page loads
 document.addEventListener('DOMContentLoaded', () => {
 	initCharts();
+	initTheme();
 	connect();
 });
