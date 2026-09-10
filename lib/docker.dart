@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'utils.dart';
@@ -26,7 +27,7 @@ class DockerMonitor {
         '--all',
         '--no-trunc',
         '--format',
-        '{{.ID}}|{{.Image}}|{{.Command}}|{{.CreatedAt}}|{{.Status}}|{{.Ports}}|{{.Names}}',
+        '{{json .}}',
       ];
       fine('Executing process: docker ${listArgs.join(' ')}');
       final result = await Process.run('docker', listArgs);
@@ -72,19 +73,18 @@ class DockerMonitor {
 
       final containers = <DockerContainer>[];
       for (final line in lines) {
-        final parts = line.split('|');
-        if (parts.length != 7) continue;
+        final fields = jsonDecode(line) as Map<String, Object?>;
 
-        final id = parts[0];
+        final id = fields['ID'] as String;
         final stats = statsMap[id];
         containers.add((
           id: id,
-          image: parts[1],
-          command: parts[2],
-          created: parts[3],
-          status: parts[4],
-          ports: parts[5],
-          names: parts[6],
+          image: fields['Image'] as String,
+          command: fields['Command'] as String,
+          created: fields['CreatedAt'] as String,
+          status: fields['Status'] as String,
+          ports: fields['Ports'] as String,
+          names: fields['Names'] as String,
           cpu: stats?.cpu ?? '--',
           memory: stats?.memory ?? '--',
         ));
